@@ -1,0 +1,44 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+backend/venv/
+backend/.venv/
+
+# Environment variables
+.env
+backend/.env
+
+# SQLite database
+*.db
+*.sqlite3
+
+# Uploaded files
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/document_pages/*
+!backend/document_pages/.gitkeep
+backend/detected_regions/*
+!backend/detected_regions/.gitkeep
+
+# ML model weights (too large for git)
+backend/ml_models/*.pt
+
+# Node modules
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
