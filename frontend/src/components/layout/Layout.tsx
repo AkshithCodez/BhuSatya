@@ -1,11 +1,11 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: '📊' },
-  { to: '/upload', label: 'Upload', icon: '📤' },
-  { to: '/review-queue', label: 'Review Queue', icon: '📋' },
-  { to: '/parcels', label: 'Land Records', icon: '🗺️' },
-  { to: '/audit', label: 'Audit Trail', icon: '📝' },
+  { to: '/app', label: 'Dashboard', icon: '📊' },
+  { to: '/app/upload', label: 'Upload', icon: '📤' },
+  { to: '/app/review-queue', label: 'Review Queue', icon: '📋' },
+  { to: '/app/parcels', label: 'Land Records', icon: '🗺️' },
+  { to: '/app/audit', label: 'Audit Trail', icon: '📝' },
 ];
 
 export default function Layout() {
@@ -15,7 +15,7 @@ export default function Layout() {
 
   const logout = () => {
     localStorage.clear();
-    navigate('/login');
+    navigate('/');
   };
 
   return (
@@ -31,7 +31,7 @@ export default function Layout() {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/'}
+              end={item.to === '/app'}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-5 py-3 text-sm transition-colors ${
                   isActive

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import UploadPage from './pages/UploadPage';
@@ -16,8 +17,13 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Landing Page */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/" element={token ? <Layout /> : <Navigate to="/login" />}>
+        <Route path="/upload" element={token ? <Navigate to="/app/upload" /> : <Navigate to="/login" />} />
+
+        {/* Authenticated App */}
+        <Route path="/app" element={token ? <Layout /> : <Navigate to="/login" />}>
           <Route index element={<DashboardPage />} />
           <Route path="upload" element={<UploadPage />} />
           <Route path="documents/:id" element={<DocumentAnalysisPage />} />
