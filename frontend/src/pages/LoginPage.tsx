@@ -1,13 +1,28 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../api/client';
+import heroNight from '../assets/bhusatya-hero-night.jpg';
+import './LoginPage.css';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('officer@sih.demo');
   const [password, setPassword] = useState('demo123');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [activeRole, setActiveRole] = useState<'officer' | 'operator'>('officer');
   const navigate = useNavigate();
+
+  const handleDemoFill = (role: 'officer' | 'operator') => {
+    setActiveRole(role);
+    if (role === 'officer') {
+      setEmail('officer@sih.demo');
+      setPassword('demo123');
+    } else {
+      setEmail('operator@sih.demo');
+      setPassword('demo123');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,70 +34,217 @@ export default function LoginPage() {
       localStorage.setItem('userId', String(res.user_id));
       localStorage.setItem('userName', res.full_name);
       localStorage.setItem('userRole', res.role);
-      navigate('/');
+      navigate('/app');
     } catch {
-      setError('Invalid credentials');
+      setError('Invalid officer credentials. Please check or use demo access.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSsoClick = () => {
+    // Government SSO simulation
+    handleDemoFill('officer');
+    setError('');
+  };
+
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">🏛️ BhuSatya</h1>
-          <p className="text-slate-400">Intelligent Land Record Digitization & Validation System</p>
-        </div>
+    <div className="login-page">
+      {/* ─── Scenic Land Parcel Background ─── */}
+      <div className="login-page__bg" aria-hidden="true">
+        <img
+          src={heroNight}
+          alt="Atmospheric aerial view of Indian land parcels at twilight"
+          className="login-page__bg-img"
+        />
+        <div className="login-page__vignette" />
+      </div>
 
-        <div className="bg-white rounded-xl shadow-xl p-8">
-          <h2 className="text-xl font-semibold text-slate-800 mb-6">Sign In</h2>
+      {/* ─── Back to Landing Page ─── */}
+      <Link to="/" className="login-page__back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Return to BhuSatya Home
+      </Link>
 
-          {error && (
-            <div className="bg-red-50 text-red-600 text-sm rounded-lg p-3 mb-4 border border-red-200">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50"
+      {/* ─── Main Content Frame ─── */}
+      <div className="login-page__container">
+        {/* Left Side: Bold Editorial Typography */}
+        <div className="login-page__left">
+          <Link to="/" className="login-page__logo">
+            <svg
+              className="login-page__logo-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-          </form>
+              <path
+                d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="login-page__logo-text">BhuSatya</span>
+          </Link>
 
-          <div className="mt-6 p-3 bg-slate-50 rounded-lg text-xs text-slate-500">
-            <p className="font-medium mb-1">Demo Credentials</p>
-            <p>officer@sih.demo / demo123</p>
-            <p>operator@sih.demo / demo123</p>
+          <h1 className="login-page__headline">
+            Secure Land Records,
+            <span className="login-page__headline-accent">Simplified for Verification</span>
+          </h1>
+
+          <p className="login-page__subheadline">
+            AI-assisted land record digitization and verification for officers and administrators.
+          </p>
+
+          <p className="login-page__supporting-text">
+            Upload, detect, and review key land-document elements such as tables, text, signatures, and
+            stamps in one unified platform.
+          </p>
+
+          <div className="login-page__features">
+            <div className="login-page__feature-item">
+              <span className="login-page__feature-dot" />
+              <span>Evidence-based anomaly detection &amp; boundary validation</span>
+            </div>
+            <div className="login-page__feature-item">
+              <span className="login-page__feature-dot" />
+              <span>Cryptographically verifiable audit log on all officer reviews</span>
+            </div>
+            <div className="login-page__feature-item">
+              <span className="login-page__feature-dot" />
+              <span>High-speed tabular data extraction &amp; bilingual recognition</span>
+            </div>
           </div>
         </div>
 
-        <p className="text-center text-xs text-slate-500 mt-6">
-          AI assists document digitization and anomaly detection.<br />
-          Final verification remains with authorized government officials.
-        </p>
+        {/* Right Side: Frosted Glass Login Panel */}
+        <div className="login-page__right">
+          <div className="login-card">
+            <div className="login-card__header">
+              <div className="login-card__badge">
+                <span className="login-card__badge-dot" />
+                <span>Officer Access Portal</span>
+              </div>
+              <h2 className="login-card__title">Officer Portal</h2>
+              <p className="login-card__subtitle">
+                Sign in to access land-record verification tools
+              </p>
+            </div>
+
+            {error && (
+              <div className="login-card__error" role="alert">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="login-form">
+              <div className="login-field">
+                <label className="login-field__label" htmlFor="officer-email">
+                  Official Email
+                </label>
+                <div className="login-field__input-wrap">
+                  <input
+                    id="officer-email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="officer@sih.demo"
+                    className="login-field__input"
+                  />
+                </div>
+              </div>
+
+              <div className="login-field">
+                <label className="login-field__label" htmlFor="officer-password">
+                  Password
+                </label>
+                <div className="login-field__input-wrap">
+                  <input
+                    id="officer-password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="login-field__input"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="login-field__toggle-pw"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="login-card__forgot-wrap">
+                <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Please contact your district revenue administration desk.'); }} className="login-card__forgot-link">
+                  Forgot password?
+                </a>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="login-card__btn-primary"
+              >
+                {loading ? 'Authenticating...' : 'Sign In'}
+              </button>
+
+              <div className="login-card__divider">or</div>
+
+              <button
+                type="button"
+                onClick={handleSsoClick}
+                className="login-card__btn-secondary"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                Continue with Government SSO
+              </button>
+
+              {/* Demo credentials selector for testing */}
+              <div className="login-card__demo-box">
+                <div className="login-card__demo-title">Quick Demo Access</div>
+                <div className="login-card__demo-pills">
+                  <button
+                    type="button"
+                    className={`login-card__demo-pill ${activeRole === 'officer' ? 'login-card__demo-pill--active' : ''}`}
+                    onClick={() => handleDemoFill('officer')}
+                  >
+                    Revenue Officer
+                  </button>
+                  <button
+                    type="button"
+                    className={`login-card__demo-pill ${activeRole === 'operator' ? 'login-card__demo-pill--active' : ''}`}
+                    onClick={() => handleDemoFill('operator')}
+                  >
+                    Data Operator
+                  </button>
+                </div>
+              </div>
+
+              <div className="login-card__footer">
+                Need access?
+                <a href="#admin" onClick={(e) => { e.preventDefault(); alert('Request sent to the nodal land administrator.'); }} className="login-card__admin-link">
+                  Contact administrator
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );

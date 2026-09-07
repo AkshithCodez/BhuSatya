@@ -4,6 +4,9 @@ import ModeSwitcher from '../components/landing/ModeSwitcher';
 import type { HeroMode } from '../components/landing/ModeSwitcher';
 import HowItWorksSection from '../components/landing/HowItWorksSection';
 import CapabilitiesSection from '../components/landing/CapabilitiesSection';
+import AboutSection from '../components/landing/AboutSection';
+import FinalCTASection from '../components/landing/FinalCTASection';
+import LandingFooter from '../components/landing/LandingFooter';
 import heroDay from '../assets/bhusatya-hero-day.jpg';
 import heroNight from '../assets/bhusatya-hero-night.jpg';
 import './LandingPage.css';
@@ -42,7 +45,7 @@ export default function LandingPage() {
 
   return (
     <div className="landing">
-      {/* ─── HERO VIEWPORT ─── */}
+      {/* ─── 1. HERO VIEWPORT ─── */}
       <section className={`hero hero--${mode}`} aria-label="Hero">
         {/* Background Imagery & Atmospheric Layers */}
         <div className="hero__bg" aria-hidden="true">
@@ -147,40 +150,20 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── BELOW FOLD SECTIONS ─── */}
+      {/* ─── 2. WORKFLOW / HOW IT WORKS ─── */}
       <HowItWorksSection />
+
+      {/* ─── 3. CAPABILITIES ─── */}
       <CapabilitiesSection />
 
-      {/* ─── FOOTER ─── */}
-      <footer className="landing-footer" id="about">
-        <div className="landing-footer__inner">
-          <div>
-            <div className="landing-footer__logo">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                aria-hidden="true"
-              >
-                <path
-                  d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              BhuSatya
-            </div>
-            <p className="landing-footer__copy">
-              Intelligent Land Record Digitization &amp; Validation System
-            </p>
-          </div>
-          <div className="landing-footer__right">
-            <span>SIH 2026 · Problem Statement SIH26018</span>
-            <span>AI-Assisted Evidence Detection &amp; Document Digitization</span>
-          </div>
-        </div>
-      </footer>
+      {/* ─── 4. ABOUT BHUSATYA ─── */}
+      <AboutSection />
+
+      {/* ─── 5. FINAL CTA / CLOSING ─── */}
+      <FinalCTASection />
+
+      {/* ─── 6. FOOTER ─── */}
+      <LandingFooter />
     </div>
   );
 }

@@ -1,37 +1,47 @@
 const capabilities = [
   {
     title: 'Table Detection',
-    desc: 'Identifies tabular boundaries and column structures within land documents, including khasra registers and mutation records.',
+    desc: 'Detects structured tabular regions from uploaded land documents, including khasra registers, mutation ledgers, and revenue records.',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
         <rect x="3" y="3" width="18" height="18" rx="2" strokeLinecap="round" />
         <path d="M3 9h18M3 15h18M9 3v18M15 3v18" strokeLinecap="round" />
       </svg>
     ),
-    tag: 'Model 1',
+    badge: 'Structure Analysis',
   },
   {
-    title: 'Signature Detection',
-    desc: 'Detects and isolates official signatures, witness marks, and applicant endorsements across historical land deeds.',
+    title: 'Text Detection',
+    desc: 'Identifies and extracts visible textual content across varying print styles and historical typography for downstream processing.',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M3 17c1.5-2 3-3 4.5-1s2 3 3.5 1 2.5-4 4-2 2.5 3 4 1 2-3 2-3" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M20 7l-7 7-4-4-6 6" strokeLinecap="round" strokeLinejoin="round" opacity="0.4" />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+        <path d="M4 7V4h16v3M9 20h6M12 4v16" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
-    tag: 'Model 1',
+    badge: 'Content Extraction',
   },
   {
     title: 'Stamp Detection',
-    desc: 'Recognises revenue stamps, administrative seals, and registration emblems with high-precision bounding boxes.',
+    desc: 'Detects official stamps/seals used in land and government records, verifying presence and geometric orientation.',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
         <circle cx="12" cy="12" r="9" />
         <circle cx="12" cy="12" r="5" />
         <path d="M12 7v0M12 17v0M7 12h0M17 12h0" strokeLinecap="round" strokeWidth="2" />
       </svg>
     ),
-    tag: 'Model 1',
+    badge: 'Official Seal',
+  },
+  {
+    title: 'Signature Detection',
+    desc: 'Identifies handwritten signatures for review and validation, isolating officer approvals and witness endorsements.',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+        <path d="M3 17c1.5-2 3-3 4.5-1s2 3 3.5 1 2.5-4 4-2 2.5 3 4 1 2-3 2-3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M20 7l-7 7-4-4-6 6" strokeLinecap="round" strokeLinejoin="round" opacity="0.4" />
+      </svg>
+    ),
+    badge: 'Endorsement',
   },
 ];
 
@@ -39,38 +49,27 @@ export default function CapabilitiesSection() {
   return (
     <section className="capabilities" id="capabilities">
       <div className="capabilities__inner">
-        <p className="capabilities__eyebrow">Capabilities</p>
-        <h2 className="capabilities__heading">
-          What our <strong>AI detects</strong>
-        </h2>
-
-        <div className="capabilities__list">
-          {capabilities.map((cap) => (
-            <div key={cap.title} className="capabilities__item">
-              <div className="capabilities__item-icon">{cap.icon}</div>
-              <div className="capabilities__item-body">
-                <h3 className="capabilities__item-title">{cap.title}</h3>
-                <p className="capabilities__item-desc">{cap.desc}</p>
-              </div>
-              <span className="capabilities__item-tag">{cap.tag}</span>
-            </div>
-          ))}
+        <div className="capabilities__header">
+          <p className="capabilities__eyebrow">Platform Capabilities</p>
+          <h2 className="capabilities__heading">
+            Intelligent detection across <strong>all document elements</strong>
+          </h2>
+          <p className="capabilities__subheading">
+            Specialized computer vision models analyze scanned land documents to localize and categorize essential verification evidence.
+          </p>
         </div>
 
-        <div className="capabilities__roadmap">
-          <svg
-            className="capabilities__roadmap-icon"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 16v-4M12 8h.01" strokeLinecap="round" />
-          </svg>
-          <span>Structured table-text extraction is planned as the next model integration.</span>
+        <div className="capabilities__grid">
+          {capabilities.map((cap) => (
+            <div key={cap.title} className="capabilities__card">
+              <div className="capabilities__card-top">
+                <div className="capabilities__card-icon">{cap.icon}</div>
+                <span className="capabilities__card-badge">{cap.badge}</span>
+              </div>
+              <h3 className="capabilities__card-title">{cap.title}</h3>
+              <p className="capabilities__card-desc">{cap.desc}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>

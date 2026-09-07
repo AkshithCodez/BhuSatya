@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 const navLinks = [
   { label: 'How It Works', href: '#how-it-works' },
   { label: 'Capabilities', href: '#capabilities' },
-  { label: 'Workflow', href: '#how-it-works' },
   { label: 'About', href: '#about' },
 ];
 
@@ -92,10 +91,20 @@ export default function TopNavigation() {
           </a>
         ))}
         <button
-          className="topnav__mobile-cta"
+          className="topnav__mobile-link"
+          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
           onClick={() => {
             closeMobile();
             navigate('/login');
+          }}
+        >
+          Officer Portal
+        </button>
+        <button
+          className="topnav__mobile-cta"
+          onClick={() => {
+            closeMobile();
+            navigate('/upload');
           }}
         >
           Start Verification
