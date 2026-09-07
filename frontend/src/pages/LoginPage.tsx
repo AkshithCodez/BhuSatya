@@ -1,22 +1,27 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../api/client';
+import ForgotPasswordModal from '../components/auth/ForgotPasswordModal';
+import DemoSSOModal from '../components/auth/DemoSSOModal';
 import heroNight from '../assets/bhusatya-hero-night.jpg';
 import './LoginPage.css';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('officer@sih.demo');
+  const [email, setEmail] = useState('officer@bhusatya.gov');
   const [password, setPassword] = useState('demo123');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeRole, setActiveRole] = useState<'officer' | 'operator'>('officer');
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [showSsoModal, setShowSsoModal] = useState(false);
   const navigate = useNavigate();
 
   const handleDemoFill = (role: 'officer' | 'operator') => {
     setActiveRole(role);
+    setError('');
     if (role === 'officer') {
-      setEmail('officer@sih.demo');
+      setEmail('officer@bhusatya.gov');
       setPassword('demo123');
     } else {
       setEmail('operator@sih.demo');
@@ -24,28 +29,57 @@ export default function LoginPage() {
     }
   };
 
+  const handleSuccessfulAuth = (name: string, role: string) => {
+    localStorage.setItem('token', 'bhusatya-auth-' + Date.now());
+    localStorage.setItem('userId', '101');
+    localStorage.setItem('userName', name);
+    localStorage.setItem('userRole', role);
+    navigate('/dashboard');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // 1. Check Working Demo Credentials
+    if (
+      (trimmedEmail === 'officer@bhusatya.gov' || trimmedEmail === 'officer@sih.demo') &&
+      password === 'demo123'
+    ) {
+      setTimeout(() => {
+        handleSuccessfulAuth('Officer Ananya Sharma', 'revenue_officer');
+      }, 350);
+      return;
+    }
+
+    if (
+      (trimmedEmail === 'operator@sih.demo' || trimmedEmail === 'operator@bhusatya.gov') &&
+      password === 'demo123'
+    ) {
+      setTimeout(() => {
+        handleSuccessfulAuth('Operator Rajesh Kumar', 'data_operator');
+      }, 350);
+      return;
+    }
+
+    // 2. Fallback to API login if custom credentials are used
     try {
       const res = await login({ email, password });
-      localStorage.setItem('token', res.access_token);
-      localStorage.setItem('userId', String(res.user_id));
-      localStorage.setItem('userName', res.full_name);
-      localStorage.setItem('userRole', res.role);
-      navigate('/app');
+      handleSuccessfulAuth(res.full_name || 'Officer Ananya Sharma', res.role || 'revenue_officer');
     } catch {
-      setError('Invalid officer credentials. Please check or use demo access.');
-    } finally {
+      setError(
+        'Invalid officer credentials. Please check your email/password or use demo credentials: officer@bhusatya.gov / demo123.'
+      );
       setLoading(false);
     }
   };
 
-  const handleSsoClick = () => {
-    // Government SSO simulation
-    handleDemoFill('officer');
-    setError('');
+  const handleSsoContinue = () => {
+    setShowSsoModal(false);
+    handleSuccessfulAuth('Officer Ananya Sharma (SSO Verified)', 'revenue_officer');
   };
 
   return (
@@ -189,9 +223,13 @@ export default function LoginPage() {
               </div>
 
               <div className="login-card__forgot-wrap">
-                <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Please contact your district revenue administration desk.'); }} className="login-card__forgot-link">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(true)}
+                  className="login-card__forgot-link"
+                >
                   Forgot password?
-                </a>
+                </button>
               </div>
 
               <button
@@ -206,7 +244,7 @@ export default function LoginPage() {
 
               <button
                 type="button"
-                onClick={handleSsoClick}
+                onClick={() => setShowSsoModal(true)}
                 className="login-card__btn-secondary"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -238,14 +276,30 @@ export default function LoginPage() {
 
               <div className="login-card__footer">
                 Need access?
-                <a href="#admin" onClick={(e) => { e.preventDefault(); alert('Request sent to the nodal land administrator.'); }} className="login-card__admin-link">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(true)}
+                  className="login-card__admin-link ml-1 bg-transparent border-none cursor-pointer"
+                >
                   Contact administrator
-                </a>
+                </button>
               </div>
             </form>
           </div>
         </div>
       </div>
+
+      {/* ─── Modals ─── */}
+      <ForgotPasswordModal
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+      />
+
+      <DemoSSOModal
+        isOpen={showSsoModal}
+        onClose={() => setShowSsoModal(false)}
+        onContinue={handleSsoContinue}
+      />
     </div>
   );
 }

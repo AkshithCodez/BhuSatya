@@ -1,0 +1,36 @@
+/* ═══════════════════════════════════════════════════════════════
+   BhuSatya Officer Dashboard Styling
+   Visual Language: iPad DAW interface adapted for Land Governance
+   ═══════════════════════════════════════════════════════════════ */
+
+.officer-dashboard {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: #0c1015;
+  background-image: 
+    radial-gradient(ellipse at 80% 10%, rgba(20, 50, 35, 0.25) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 90%, rgba(15, 30, 45, 0.3) 0%, transparent 60%);
+  color: #f8fafc;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+/* Custom Sleek Scrollbar */
+.officer-dashboard-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.officer-dashboard-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.officer-dashboard-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+.officer-dashboard-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(74, 222, 128, 0.35);
+}
