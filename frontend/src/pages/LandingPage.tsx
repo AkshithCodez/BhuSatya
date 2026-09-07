@@ -44,7 +44,7 @@ export default function LandingPage() {
   const content = heroContent[mode];
 
   return (
-    <div className="landing">
+    <div className={`landing landing--${mode}`}>
       {/* ─── 1. HERO VIEWPORT ─── */}
       <section className={`hero hero--${mode}`} aria-label="Hero">
         {/* Background Imagery & Atmospheric Layers */}
