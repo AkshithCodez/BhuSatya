@@ -44,9 +44,9 @@
 | **Field Normalizer & Parser** | ✅ **Completed** | `backend/app/services/field_parser.py`. Regex & multi-lingual alias dictionary (Hindi/English). Collision-safe matching. |
 | **10-Rule Validation Engine** | ✅ **Completed** | `backend/app/services/validation/engine.py`. Cross-checks against authoritative RoR records, GIS spatial area, mutation succession chains. |
 | **Deterministic Risk Scoring** | ✅ **Completed** | `backend/app/services/risk_service.py`. Generates explainable 0–100 score and categorical risk levels (`LOW`, `MODERATE`, `HIGH`, `CRITICAL`). |
-| **Officer Review Workstation** | ✅ **Completed** | `frontend/src/pages/OfficerReviewPage.tsx`. Split view: document with bounding boxes + editable fields with mandatory audit reason logging. |
-| **Immutable Audit Trail** | ✅ **Completed** | `backend/app/services/audit_service.py` & `frontend/src/pages/AuditPage.tsx`. Append-only ledger for all inferences, edits, approvals. |
-| **Cadastral GIS Map & Timeline** | ✅ **Completed** | `frontend/src/pages/ParcelPage.tsx`. SVG survey polygon visualizer with WGS84 vertices, chronological timeline, and land ownership graph. |
+| **Officer Review Workstation** | ✅ **Completed** | `frontend/src/pages/VerificationCaseDetailPage.tsx`. Split view: document with bounding boxes + editable fields with mandatory audit reason logging. |
+| **Immutable Audit Trail** | ✅ **Completed** | `backend/app/services/audit_service.py` & `frontend/src/pages/AuditTrailPage.tsx`. Append-only ledger for all inferences, edits, approvals. |
+| **Cadastral GIS Map & Timeline** | ✅ **Completed** | `frontend/src/pages/LandRecordDetailPage.tsx`. SVG survey polygon visualizer with WGS84 vertices, chronological timeline, and land ownership graph. |
 | **Automated Tests** | ✅ **Completed** | 11/11 tests passing in `backend/tests/` (`test_unit.py` and `test_integration.py`). |
 
 ---
@@ -57,6 +57,7 @@
 BhuSatya/
 ├── README.md                           <- User guide and setup
 ├── AGENTS.md                           <- This developer and AI onboarding guide
+├── CURRENT_PROGRESS.md                 <- Authoritative state of progress & demo journey
 ├── docs/
 │   ├── ARCHITECTURE.md                 <- Technical deep-dive & schemas
 │   ├── MODEL_INTEGRATION_GUIDE.md      <- Step-by-step for Model 1 and Model 2
@@ -68,8 +69,8 @@ BhuSatya/
 │   │   ├── models/                     <- SQLAlchemy ORM models (16+ tables)
 │   │   ├── schemas/                    <- Pydantic request/response schemas
 │   │   └── services/
-│   │       ├── layout_detection/       <- Model 1 YOLO loader & schemas
-│   │       ├── table_extraction/       <- Pluggable Model 2 factory & providers
+│   │       ├── layout_detection/       <- YOLO element detection loader & schemas
+│   │       ├── table_extraction/       <- Pluggable OCR / table parser factory & providers
 │   │       ├── validation/             <- 10 cross-check validators & engine
 │   │       ├── field_parser.py         <- Structured regex extractor
 │   │       ├── risk_service.py         <- 0-100 deterministic risk scorer
@@ -80,16 +81,28 @@ BhuSatya/
 │   └── requirements.txt                <- Python dependencies
 └── frontend/
     ├── src/
-    │   ├── api/client.ts               <- Axios API client connecting to backend
-    │   ├── pages/                      <- 7 core UI pages
-    │   │   ├── LoginPage.tsx           <- Official login
-    │   │   ├── DashboardPage.tsx       <- High-level operational stats
-    │   │   ├── UploadPage.tsx          <- Drag-and-drop document upload
-    │   │   ├── DocumentAnalysisPage.tsx<- Bounding box canvas & pipeline trigger
-    │   │   ├── ReviewQueuePage.tsx     <- Prioritized discrepancy queue
-    │   │   ├── OfficerReviewPage.tsx   <- Human-in-the-loop correction & certification
-    │   │   ├── ParcelPage.tsx          <- GIS Cadastral Map, Timeline & Graph
-    │   │   └── AuditPage.tsx           <- Immutable audit ledger
+    │   ├── data/
+    │   │   ├── mockCases.ts            <- Centralized verification cases + persistence
+    │   │   ├── mockRecords.ts          <- Cadastral records + ownership history timeline
+    │   │   └── mockAuditLogs.ts        <- Audit log entries
+    │   ├── components/
+    │   │   ├── layout/PortalLayout.tsx <- Single persistent 240px sidebar + topbar
+    │   │   ├── auth/                   <- ForgotPasswordModal, DemoSSOModal
+    │   │   └── landing/                <- Hero, ModeSwitcher, HowItWorks, Capabilities, About, Footer
+    │   ├── pages/
+    │   │   ├── LandingPage.tsx         <- Dual-mode cinematic landing page
+    │   │   ├── LoginPage.tsx           <- Officer portal sign-in (glass card)
+    │   │   ├── OfficerDashboard.tsx    <- Overview command center (4 stats, 4 shortcuts, recent cases)
+    │   │   ├── UploadPage.tsx          <- Drag-and-drop ingestion workspace
+    │   │   ├── ProcessingPage.tsx      <- 7-step progress simulator
+    │   │   ├── DedicatedAnalysisPage.tsx <- 65/35 document element inspector
+    │   │   ├── VerificationCasesPage.tsx <- Status-filtered case list
+    │   │   ├── VerificationCaseDetailPage.tsx <- Case adjudication desk & decision modal
+    │   │   ├── LandRecordsPage.tsx     <- Cadastral archive table & search
+    │   │   ├── LandRecordDetailPage.tsx<- Parcel detail & ownership timeline
+    │   │   ├── ReportsPage.tsx         <- Executive throughput metrics & charts
+    │   │   ├── AuditTrailPage.tsx      <- Activity log table
+    │   │   └── SettingsPage.tsx        <- Officer preferences & security
     │   └── types/index.ts              <- TypeScript models matching backend schemas
     └── package.json
 ```
