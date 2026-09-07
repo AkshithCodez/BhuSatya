@@ -1,50 +1,104 @@
 export default function ReportsPage() {
-  const reports = [
-    { title: 'Weekly Land Digitization Summary', period: '01 Sep – 07 Sep 2026', records: '984 Records', status: 'Ready' },
-    { title: 'District Adjudication Efficiency Index', period: 'August 2026', records: '4,120 Records', status: 'Ready' },
-    { title: 'Boundary Discrepancy & Anomaly Audit', period: 'Q2 FY 2026-27', records: '48 Flagged Cases', status: 'Ready' },
-    { title: 'Officer Turnaround Time Report', period: 'August 2026', records: '38 Officers', status: 'Ready' },
+  const summaryMetrics = [
+    { label: 'Documents Processed', value: '1,420', sub: 'Across 6 revenue districts', color: 'text-emerald-400' },
+    { label: 'Pending Verification', value: '18', sub: 'Avg queue latency: 14 min', color: 'text-amber-400' },
+    { label: 'Approved Cases', value: '1,388', sub: '97.7% verification compliance', color: 'text-teal-400' },
+    { label: 'Cases Requiring Review', value: '14', sub: 'Boundary & signature checks', color: 'text-rose-400' },
+  ];
+
+  const districtData = [
+    { district: 'Bengaluru Urban', count: 480, pct: '34%' },
+    { district: 'Mysuru', count: 320, pct: '23%' },
+    { district: 'Tumakuru', count: 260, pct: '18%' },
+    { district: 'Belagavi', count: 190, pct: '13%' },
+    { district: 'Mandya', count: 170, pct: '12%' },
+  ];
+
+  const monthlyTrend = [
+    { month: 'Apr', count: 180, height: '40%' },
+    { month: 'May', count: 220, height: '52%' },
+    { month: 'Jun', count: 290, height: '68%' },
+    { month: 'Jul', count: 310, height: '74%' },
+    { month: 'Aug', count: 380, height: '88%' },
+    { month: 'Sep', count: 420, height: '98%' },
   ];
 
   return (
-    <div className="space-y-6 select-none">
-      <div className="border-b border-white/[0.08] pb-4">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-            Governance Intelligence
-          </span>
-          <span className="text-xs text-slate-500 font-mono">EXPORT MODULE</span>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Executive Reports</h1>
+          <p className="text-sm text-[#94A39B] mt-1">
+            High-level throughput and jurisdictional verification metrics.
+          </p>
         </div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">Reports &amp; Analytics</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          Generate formal departmental summaries, throughput metrics, and audit statements.
-        </p>
+        <button
+          onClick={() => alert('Monthly Land Records Summary exported.')}
+          className="py-2 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-medium transition-colors shadow-sm self-start sm:self-auto"
+        >
+          Export Summary Report
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {reports.map((rep, idx) => (
-          <div key={idx} className="p-5 rounded-2xl bg-[#11161d] border border-white/[0.08] flex flex-col justify-between space-y-4">
-            <div>
-              <div className="flex justify-between items-center text-xs text-slate-400 mb-1">
-                <span className="font-mono">{rep.period}</span>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-mono text-[10px] border border-emerald-500/30">
-                  {rep.status}
-                </span>
-              </div>
-              <h3 className="text-base font-semibold text-white tracking-tight">{rep.title}</h3>
-              <p className="text-xs text-slate-400 mt-1">Scope: {rep.records}</p>
-            </div>
-
-            <div className="pt-3 border-t border-white/[0.06] flex justify-end">
-              <button
-                onClick={() => alert(`Generating ${rep.title} PDF download...`)}
-                className="py-1.5 px-3 rounded-xl bg-white/[0.05] hover:bg-emerald-500 hover:text-slate-950 text-slate-200 text-xs font-semibold transition-all"
-              >
-                Download Official Report ↓
-              </button>
-            </div>
+      {/* 4 Key Summary Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {summaryMetrics.map((m, idx) => (
+          <div key={idx} className="p-5 rounded-2xl bg-[#161E1B] border border-white/[0.08]">
+            <p className="text-xs text-[#94A39B] font-medium">{m.label}</p>
+            <p className={`text-2xl font-bold mt-1 tracking-tight ${m.color}`}>{m.value}</p>
+            <p className="text-[11px] text-[#64756D] mt-1">{m.sub}</p>
           </div>
         ))}
+      </div>
+
+      {/* 2 Simple Visual Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Chart 1: Monthly Throughput (Simple Bar Chart) */}
+        <div className="p-6 rounded-2xl bg-[#161E1B] border border-white/[0.08] space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+            <h2 className="text-base font-semibold text-white">Monthly Verification Volume</h2>
+            <span className="text-xs text-[#94A39B]">FY 2026-27</span>
+          </div>
+
+          <div className="h-48 flex items-end justify-between gap-4 pt-4 px-2">
+            {monthlyTrend.map((t) => (
+              <div key={t.month} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                <span className="text-[10px] font-mono text-[#94A39B]">{t.count}</span>
+                <div
+                  style={{ height: t.height }}
+                  className="w-full max-w-[36px] bg-gradient-to-t from-emerald-800 to-emerald-500 rounded-t-md transition-all duration-300"
+                />
+                <span className="text-xs text-[#94A39B] font-medium">{t.month}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Chart 2: District Throughput Distribution */}
+        <div className="p-6 rounded-2xl bg-[#161E1B] border border-white/[0.08] space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+            <h2 className="text-base font-semibold text-white">District Volume Distribution</h2>
+            <span className="text-xs text-[#94A39B]">Karnataka Revenue</span>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            {districtData.map((d) => (
+              <div key={d.district} className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-medium text-slate-200">{d.district}</span>
+                  <span className="font-mono text-[#94A39B]">{d.count} docs ({d.pct})</span>
+                </div>
+                <div className="h-2 w-full bg-[#0F1513] rounded-full overflow-hidden">
+                  <div
+                    style={{ width: d.pct }}
+                    className="h-full bg-emerald-600 rounded-full"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

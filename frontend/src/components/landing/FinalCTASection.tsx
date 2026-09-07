@@ -8,24 +8,24 @@ export default function FinalCTASection() {
       <div className="final-cta__inner">
         <div className="final-cta__badge">Government-Ready Infrastructure</div>
         <h2 className="final-cta__heading">
-          Ready to modernize <strong>land-record verification?</strong>
+          Modernize <strong>Land Record Verification</strong>
         </h2>
         <p className="final-cta__subtext">
-          Start using BhuSatya to digitize, detect, and review land documents with confidence.
+          Digitize, analyse and review land documents through one unified officer workflow.
         </p>
 
         <div className="final-cta__actions">
           <button
             className="final-cta__btn final-cta__btn--primary"
-            onClick={() => navigate('/upload')}
-          >
-            Start Verification
-          </button>
-          <button
-            className="final-cta__btn final-cta__btn--secondary"
             onClick={() => navigate('/login')}
           >
             Open Officer Portal
+          </button>
+          <button
+            className="final-cta__btn final-cta__btn--secondary"
+            onClick={() => navigate('/upload')}
+          >
+            Start Verification
           </button>
           <a href="#how-it-works" className="final-cta__btn final-cta__btn--outline">
             Explore Workflow

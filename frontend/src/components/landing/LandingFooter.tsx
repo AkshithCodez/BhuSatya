@@ -11,60 +11,48 @@ export default function LandingFooter() {
           {/* Brand info */}
           <div className="landing-footer__brand-col">
             <div className="landing-footer__logo">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                aria-hidden="true"
-              >
-                <path
-                  d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <span className="text-xl">🏛️</span>
               <span>BhuSatya</span>
             </div>
             <p className="landing-footer__tagline">
               Intelligent Land Record Digitization &amp; Validation System
             </p>
             <p className="landing-footer__mission">
-              Built to support transparent, efficient, and intelligent land-record management.
+              Supporting transparent, efficient and intelligent land-record management.
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="landing-footer__nav-col">
-            <h4 className="landing-footer__col-title">Platform</h4>
+            <h4 className="landing-footer__col-title">Quick Links</h4>
             <ul className="landing-footer__links">
               <li><a href="#how-it-works">How It Works</a></li>
-              <li><a href="#capabilities">AI Capabilities</a></li>
-              <li><a href="#about">About Platform</a></li>
+              <li><a href="#capabilities">AI Detection Capabilities</a></li>
+              <li><a href="#about">About BhuSatya</a></li>
               <li><button onClick={() => navigate('/upload')} className="landing-footer__link-btn">Start Verification</button></li>
               <li><button onClick={() => navigate('/login')} className="landing-footer__link-btn">Officer Portal</button></li>
             </ul>
           </div>
 
-          {/* Capabilities */}
+          {/* Detection Features */}
           <div className="landing-footer__nav-col">
-            <h4 className="landing-footer__col-title">Detection Features</h4>
+            <h4 className="landing-footer__col-title">Detection Capabilities</h4>
             <ul className="landing-footer__links">
-              <li><a href="#capabilities">Table Detection</a></li>
               <li><a href="#capabilities">Text Detection</a></li>
+              <li><a href="#capabilities">Table Detection</a></li>
               <li><a href="#capabilities">Stamp Detection</a></li>
               <li><a href="#capabilities">Signature Detection</a></li>
             </ul>
           </div>
 
-          {/* Support / Contact */}
+          {/* Support & Governance */}
           <div className="landing-footer__nav-col">
-            <h4 className="landing-footer__col-title">Governance &amp; Support</h4>
+            <h4 className="landing-footer__col-title">Support &amp; Privacy</h4>
             <ul className="landing-footer__links">
-              <li><span>Department of Land Resources</span></li>
+              <li><span>Department of Land Governance</span></li>
               <li><span>Officer Helpdesk: support@bhusatya.gov.in</span></li>
-              <li><span>Administrative Verification Standards</span></li>
-              <li><span>Immutable Audit Logging Enabled</span></li>
+              <li><span>Toll Free: 1800-425-BHUMI</span></li>
+              <li><span>Privacy &amp; Data Sovereign Policy</span></li>
             </ul>
           </div>
         </div>
@@ -72,11 +60,11 @@ export default function LandingFooter() {
         {/* Bottom divider & bar */}
         <div className="landing-footer__bottom-bar">
           <p className="landing-footer__copyright">
-            © {new Date().getFullYear()} BhuSatya Platform. Designed for Intelligent Land Record Verification.
+            © {new Date().getFullYear()} BhuSatya. Supporting transparent, efficient and intelligent land-record management.
           </p>
           <div className="landing-footer__status">
             <span className="landing-footer__status-dot" />
-            <span>AI Verification Engine Operational</span>
+            <span>Operational · State Revenue Network</span>
           </div>
         </div>
       </div>

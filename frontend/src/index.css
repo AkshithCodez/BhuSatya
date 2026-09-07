@@ -1,25 +1,48 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 :root {
-  --navy-900: #0f172a;
-  --navy-800: #1e293b;
-  --navy-700: #334155;
-  --navy-600: #475569;
-  --slate-500: #64748b;
-  --slate-400: #94a3b8;
-  --slate-300: #cbd5e1;
-  --slate-200: #e2e8f0;
-  --slate-100: #f1f5f9;
-  --slate-50: #f8fafc;
-  --green-600: #16a34a;
-  --green-100: #dcfce7;
-  --amber-600: #d97706;
-  --amber-100: #fef3c7;
-  --red-600: #dc2626;
-  --red-100: #fee2e2;
-  --blue-600: #2563eb;
-  --blue-100: #dbeafe;
+  /* BhuSatya Dark Government Enterprise Design System */
+  --bs-bg-main: #0F1513;
+  --bs-bg-sidebar: #0A0E0D;
+  --bs-surface: #161E1B;
+  --bs-surface-elevated: #1E2824;
+  --bs-surface-highlight: #24322C;
+  --bs-border: rgba(255, 255, 255, 0.08);
+  --bs-border-subtle: rgba(255, 255, 255, 0.05);
+
+  --bs-text-primary: #F3F4F1;
+  --bs-text-secondary: #94A39B;
+  --bs-text-muted: #64756D;
+
+  --bs-accent-primary: #10B981;
+  --bs-accent-hover: #059669;
+  --bs-accent-subtle: rgba(16, 185, 129, 0.12);
+  --bs-accent-border: rgba(16, 185, 129, 0.28);
+
+  --bs-warning: #F59E0B;
+  --bs-warning-subtle: rgba(245, 158, 11, 0.12);
+  --bs-warning-border: rgba(245, 158, 11, 0.28);
+
+  --bs-danger: #EF4444;
+  --bs-danger-subtle: rgba(239, 68, 68, 0.12);
+  --bs-danger-border: rgba(239, 68, 68, 0.28);
+
+  --bs-info: #06B6D4;
+  --bs-info-subtle: rgba(6, 182, 212, 0.12);
+  --bs-info-border: rgba(6, 182, 212, 0.28);
+
+  /* Legacy Slate/Navy fallback mapping */
+  --navy-900: #0F1513;
+  --navy-800: #161E1B;
+  --navy-700: #1E2824;
+  --navy-600: #24322C;
+  --slate-500: #64756D;
+  --slate-400: #94A39B;
+  --slate-300: #C2CBC6;
+  --slate-200: #E1E6E3;
+  --slate-100: #F3F4F1;
+  --slate-50: #FAFAF9;
 }
 
 * {
@@ -29,13 +52,32 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--slate-100);
-  color: var(--navy-900);
-  line-height: 1.6;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bs-bg-main);
+  color: var(--bs-text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--slate-200); }
-::-webkit-scrollbar-thumb { background: var(--slate-400); border-radius: 3px; }
+/* Monospace used STRICTLY for technical identifiers (Case IDs, Survey Numbers, Hashes) */
+.font-mono, .id-badge {
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -0.02em;
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0A0E0D;
+}
+::-webkit-scrollbar-thumb {
+  background: #24322C;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #364941;
+}

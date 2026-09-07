@@ -79,59 +79,59 @@
    THEME VARIABLES: VERIFY (Dark / Analytical)
    ═══════════════════════════════════════════ */
 .landing--verify {
-  --lp-bg-page: #0e121a;
-  --lp-text-primary: #f8fafc;
-  --lp-text-secondary: #94a3b8;
-  --lp-text-muted: #64748b;
+  --lp-bg-page: #0C1210;
+  --lp-text-primary: #F3F4F1;
+  --lp-text-secondary: #94A39B;
+  --lp-text-muted: #64756D;
   --lp-section-border: rgba(255, 255, 255, 0.08);
-  --lp-eyebrow-bg: rgba(74, 222, 128, 0.12);
-  --lp-eyebrow-color: #86efac;
-  --lp-accent: #4ade80;
-  --lp-accent-glow: #4ade80;
+  --lp-eyebrow-bg: rgba(16, 185, 129, 0.12);
+  --lp-eyebrow-color: #6EE7B7;
+  --lp-accent: #10B981;
+  --lp-accent-glow: #10B981;
 
   /* Workflow */
-  --lp-hiw-bg: linear-gradient(180deg, #0e121a 0%, #111622 100%);
+  --lp-hiw-bg: linear-gradient(180deg, #0C1210 0%, #101714 100%);
   --lp-hiw-grid: rgba(255, 255, 255, 0.035);
-  --lp-hiw-card-bg: rgba(20, 28, 42, 0.75);
-  --lp-hiw-card-border: rgba(74, 222, 128, 0.16);
+  --lp-hiw-card-bg: rgba(22, 30, 27, 0.85);
+  --lp-hiw-card-border: rgba(16, 185, 129, 0.2);
   --lp-hiw-card-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.45);
-  --lp-hiw-num-color: #86efac;
-  --lp-hiw-divider: rgba(74, 222, 128, 0.24);
+  --lp-hiw-num-color: #6EE7B7;
+  --lp-hiw-divider: rgba(16, 185, 129, 0.25);
 
   /* Capabilities */
-  --lp-cap-bg: linear-gradient(180deg, #111622 0%, #151d2a 100%);
-  --lp-cap-card-bg: rgba(24, 34, 50, 0.85);
-  --lp-cap-card-border: rgba(74, 222, 128, 0.18);
+  --lp-cap-bg: linear-gradient(180deg, #101714 0%, #141E1A 100%);
+  --lp-cap-card-bg: rgba(22, 30, 27, 0.9);
+  --lp-cap-card-border: rgba(16, 185, 129, 0.2);
   --lp-cap-card-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.45);
-  --lp-cap-icon-bg: rgba(74, 222, 128, 0.12);
-  --lp-cap-icon-color: #86efac;
-  --lp-cap-badge-bg: rgba(74, 222, 128, 0.14);
-  --lp-cap-badge-color: #bbf7d0;
+  --lp-cap-icon-bg: rgba(16, 185, 129, 0.15);
+  --lp-cap-icon-color: #6EE7B7;
+  --lp-cap-badge-bg: rgba(16, 185, 129, 0.14);
+  --lp-cap-badge-color: #A7F3D0;
 
   /* About */
-  --lp-about-bg: linear-gradient(180deg, #151d2a 0%, #0e131e 100%);
-  --lp-about-card-bg: rgba(24, 34, 50, 0.88);
-  --lp-about-card-border: rgba(74, 222, 128, 0.16);
-  --lp-about-stats-bg: rgba(18, 25, 38, 0.78);
-  --lp-about-stats-border: rgba(74, 222, 128, 0.22);
-  --lp-about-stat-num: #86efac;
+  --lp-about-bg: linear-gradient(180deg, #141E1A 0%, #0F1513 100%);
+  --lp-about-card-bg: rgba(22, 30, 27, 0.9);
+  --lp-about-card-border: rgba(16, 185, 129, 0.2);
+  --lp-about-stats-bg: rgba(18, 25, 22, 0.85);
+  --lp-about-stats-border: rgba(16, 185, 129, 0.25);
+  --lp-about-stat-num: #6EE7B7;
 
   /* Final CTA */
-  --lp-cta-outer-bg: #0e131e;
-  --lp-cta-inner-bg: linear-gradient(135deg, #090e16 0%, #111a26 50%, #0a111a 100%);
-  --lp-cta-inner-border: rgba(74, 222, 128, 0.22);
-  --lp-cta-glow: rgba(74, 222, 128, 0.28);
-  --lp-cta-badge-bg: rgba(74, 222, 128, 0.18);
-  --lp-cta-badge-border: rgba(74, 222, 128, 0.4);
-  --lp-cta-badge-color: #86efac;
-  --lp-cta-btn-primary-bg: #4ade80;
-  --lp-cta-btn-primary-color: #061409;
+  --lp-cta-outer-bg: #0F1513;
+  --lp-cta-inner-bg: linear-gradient(135deg, #0A0E0D 0%, #161E1B 50%, #0A0E0D 100%);
+  --lp-cta-inner-border: rgba(16, 185, 129, 0.3);
+  --lp-cta-glow: rgba(16, 185, 129, 0.2);
+  --lp-cta-badge-bg: rgba(16, 185, 129, 0.16);
+  --lp-cta-badge-border: rgba(16, 185, 129, 0.4);
+  --lp-cta-badge-color: #6EE7B7;
+  --lp-cta-btn-primary-bg: #10B981;
+  --lp-cta-btn-primary-color: #05140D;
 
   /* Footer */
-  --lp-footer-bg: #06080d;
-  --lp-footer-border: rgba(255, 255, 255, 0.06);
-  --lp-footer-link: rgba(255, 255, 255, 0.6);
-  --lp-footer-sub: rgba(255, 255, 255, 0.35);
+  --lp-footer-bg: #070A09;
+  --lp-footer-border: rgba(255, 255, 255, 0.08);
+  --lp-footer-link: rgba(255, 255, 255, 0.65);
+  --lp-footer-sub: rgba(255, 255, 255, 0.4);
 }
 
 /* ─── Global Base ─── */
