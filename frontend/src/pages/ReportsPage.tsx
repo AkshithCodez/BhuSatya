@@ -1,105 +1,151 @@
+import { useState } from 'react';
+import PageHeader from '../components/ui/PageHeader';
+import Panel from '../components/ui/Panel';
+import StatCard from '../components/ui/StatCard';
+import BarChart from '../components/ui/BarChart';
+import SegmentedControl from '../components/ui/SegmentedControl';
+import { FileCheck2, FileStack, Flag } from 'lucide-react';
+import { TBody, TD, TH, THead, TR, Table } from '../components/ui/Table';
+
+const DISTRICTS = [
+  { district: 'Bengaluru Urban', digitized: 742, verified: 690, pending: 5, flagged: 9 },
+  { district: 'Mysuru', digitized: 516, verified: 470, pending: 4, flagged: 7 },
+  { district: 'Tumakuru', digitized: 448, verified: 402, pending: 3, flagged: 5 },
+  { district: 'Belagavi', digitized: 395, verified: 348, pending: 2, flagged: 6 },
+  { district: 'Mandya', digitized: 372, verified: 341, pending: 2, flagged: 4 },
+  { district: 'Dakshina Kannada', digitized: 287, verified: 229, pending: 2, flagged: 3 },
+];
+
+const MONTHLY = [
+  { label: 'Apr', value: 388 },
+  { label: 'May', value: 412 },
+  { label: 'Jun', value: 436 },
+  { label: 'Jul', value: 458 },
+  { label: 'Aug', value: 481 },
+  { label: 'Sep', value: 142 },
+];
+
+/* Quarters run from the pilot quarter to the current one and sum to the same
+   2,760 total as the district table. */
+const QUARTERLY = [
+  { label: 'Q4 2025', value: 96 },
+  { label: 'Q1 2026', value: 347 },
+  { label: 'Q2 2026', value: 1236 },
+  { label: 'Q3 2026', value: 1081 },
+];
+
+const TOTALS = DISTRICTS.reduce(
+  (a, d) => ({
+    digitized: a.digitized + d.digitized,
+    verified: a.verified + d.verified,
+    pending: a.pending + d.pending,
+    flagged: a.flagged + d.flagged,
+  }),
+  { digitized: 0, verified: 0, pending: 0, flagged: 0 }
+);
+
 export default function ReportsPage() {
-  const summaryMetrics = [
-    { label: 'Documents Processed', value: '1,420', sub: 'Across 6 revenue districts', color: 'text-emerald-400' },
-    { label: 'Pending Verification', value: '18', sub: 'Avg queue latency: 14 min', color: 'text-amber-400' },
-    { label: 'Approved Cases', value: '1,388', sub: '97.7% verification compliance', color: 'text-teal-400' },
-    { label: 'Cases Requiring Review', value: '14', sub: 'Boundary & signature checks', color: 'text-rose-400' },
-  ];
-
-  const districtData = [
-    { district: 'Bengaluru Urban', count: 480, pct: '34%' },
-    { district: 'Mysuru', count: 320, pct: '23%' },
-    { district: 'Tumakuru', count: 260, pct: '18%' },
-    { district: 'Belagavi', count: 190, pct: '13%' },
-    { district: 'Mandya', count: 170, pct: '12%' },
-  ];
-
-  const monthlyTrend = [
-    { month: 'Apr', count: 180, height: '40%' },
-    { month: 'May', count: 220, height: '52%' },
-    { month: 'Jun', count: 290, height: '68%' },
-    { month: 'Jul', count: 310, height: '74%' },
-    { month: 'Aug', count: 380, height: '88%' },
-    { month: 'Sep', count: 420, height: '98%' },
-  ];
+  const [range, setRange] = useState<'monthly' | 'quarterly'>('monthly');
+  const data = range === 'monthly' ? MONTHLY : QUARTERLY;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Executive Reports</h1>
-          <p className="text-sm text-[#94A39B] mt-1">
-            High-level throughput and jurisdictional verification metrics.
-          </p>
-        </div>
-        <button
-          onClick={() => alert('Monthly Land Records Summary exported.')}
-          className="py-2 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-medium transition-colors shadow-sm self-start sm:self-auto"
-        >
-          Export Summary Report
-        </button>
+    <>
+      <PageHeader
+        title="Reports"
+        subtitle="Digitization and verification totals across districts."
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <StatCard
+          icon={<FileStack size={16} strokeWidth={1.9} />}
+          label="Records Digitized"
+          value={TOTALS.digitized.toLocaleString('en-IN')}
+          description="Total documents ingested since the programme began."
+        />
+        <StatCard
+          icon={<FileCheck2 size={16} strokeWidth={1.9} />}
+          label="Verified Land Records"
+          value={TOTALS.verified.toLocaleString('en-IN')}
+          description="Officer-approved and written to the register."
+        />
+        <StatCard
+          icon={<Flag size={16} strokeWidth={1.9} />}
+          label="Flagged for Dispute"
+          value={TOTALS.flagged.toLocaleString('en-IN')}
+          description="Referred for boundary survey or adjudication."
+        />
       </div>
 
-      {/* 4 Key Summary Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {summaryMetrics.map((m, idx) => (
-          <div key={idx} className="p-5 rounded-2xl bg-[#161E1B] border border-white/[0.08]">
-            <p className="text-xs text-[#94A39B] font-medium">{m.label}</p>
-            <p className={`text-2xl font-bold mt-1 tracking-tight ${m.color}`}>{m.value}</p>
-            <p className="text-[11px] text-[#64756D] mt-1">{m.sub}</p>
-          </div>
-        ))}
-      </div>
+      <Panel
+        className="mt-5"
+        title="Records Digitized"
+        subtitle={range === 'monthly' ? 'Last six months' : 'Since the programme began'}
+        actions={
+          <SegmentedControl
+            value={range}
+            onChange={setRange}
+            options={[
+              { value: 'monthly', label: 'Monthly' },
+              { value: 'quarterly', label: 'Quarterly' },
+            ]}
+          />
+        }
+      >
+        <BarChart data={data} height={200} />
+      </Panel>
 
-      {/* 2 Simple Visual Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Chart 1: Monthly Throughput (Simple Bar Chart) */}
-        <div className="p-6 rounded-2xl bg-[#161E1B] border border-white/[0.08] space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-            <h2 className="text-base font-semibold text-white">Monthly Verification Volume</h2>
-            <span className="text-xs text-[#94A39B]">FY 2026-27</span>
-          </div>
-
-          <div className="h-48 flex items-end justify-between gap-4 pt-4 px-2">
-            {monthlyTrend.map((t) => (
-              <div key={t.month} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                <span className="text-[10px] font-mono text-[#94A39B]">{t.count}</span>
-                <div
-                  style={{ height: t.height }}
-                  className="w-full max-w-[36px] bg-gradient-to-t from-emerald-800 to-emerald-500 rounded-t-md transition-all duration-300"
-                />
-                <span className="text-xs text-[#94A39B] font-medium">{t.month}</span>
-              </div>
+      <Panel flush className="mt-5" title="District Summary">
+        <Table minWidth={760}>
+          <THead>
+            <TH>District</TH>
+            <TH align="right">Digitized</TH>
+            <TH align="right">Verified</TH>
+            <TH align="right">Pending</TH>
+            <TH align="right">Flagged</TH>
+            <TH align="right">Verified %</TH>
+          </THead>
+          <TBody>
+            {DISTRICTS.map((d) => (
+              <TR key={d.district}>
+                <TD className="text-ink">{d.district}</TD>
+                <TD align="right" className="tnum">
+                  {d.digitized.toLocaleString('en-IN')}
+                </TD>
+                <TD align="right" className="tnum">
+                  {d.verified.toLocaleString('en-IN')}
+                </TD>
+                <TD align="right" className="tnum">
+                  {d.pending}
+                </TD>
+                <TD align="right" className="tnum">
+                  {d.flagged}
+                </TD>
+                <TD align="right" className="tnum text-ink">
+                  {Math.round((d.verified / d.digitized) * 100)}%
+                </TD>
+              </TR>
             ))}
-          </div>
-        </div>
-
-        {/* Chart 2: District Throughput Distribution */}
-        <div className="p-6 rounded-2xl bg-[#161E1B] border border-white/[0.08] space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-            <h2 className="text-base font-semibold text-white">District Volume Distribution</h2>
-            <span className="text-xs text-[#94A39B]">Karnataka Revenue</span>
-          </div>
-
-          <div className="space-y-3 pt-2">
-            {districtData.map((d) => (
-              <div key={d.district} className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-slate-200">{d.district}</span>
-                  <span className="font-mono text-[#94A39B]">{d.count} docs ({d.pct})</span>
-                </div>
-                <div className="h-2 w-full bg-[#0F1513] rounded-full overflow-hidden">
-                  <div
-                    style={{ width: d.pct }}
-                    className="h-full bg-emerald-600 rounded-full"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
+            <TR className="bg-white/[0.015]">
+              <TD className="text-ink font-medium">All districts</TD>
+              <TD align="right" className="tnum text-ink font-medium">
+                {TOTALS.digitized.toLocaleString('en-IN')}
+              </TD>
+              <TD align="right" className="tnum text-ink font-medium">
+                {TOTALS.verified.toLocaleString('en-IN')}
+              </TD>
+              <TD align="right" className="tnum text-ink font-medium">
+                {TOTALS.pending}
+              </TD>
+              <TD align="right" className="tnum text-ink font-medium">
+                {TOTALS.flagged}
+              </TD>
+              <TD align="right" className="tnum text-ink font-medium">
+                {Math.round((TOTALS.verified / TOTALS.digitized) * 100)}%
+              </TD>
+            </TR>
+          </TBody>
+        </Table>
+      </Panel>
+    </>
   );
 }

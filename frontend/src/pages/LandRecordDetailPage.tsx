@@ -1,255 +1,195 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Check, FileText, X } from 'lucide-react';
+import PageHeader from '../components/ui/PageHeader';
+import Panel from '../components/ui/Panel';
+import Button from '../components/ui/Button';
+import Badge, { StatusBadge } from '../components/ui/Badge';
+import SegmentedControl from '../components/ui/SegmentedControl';
+import { KeyValue, KeyValueList } from '../components/ui/KeyValue';
 import { getRecordById } from '../data/mockRecords';
+
+type Tab = 'overview' | 'documents' | 'ownership' | 'verification';
+
+const TABS: { value: Tab; label: string }[] = [
+  { value: 'overview', label: 'Overview' },
+  { value: 'documents', label: 'Documents' },
+  { value: 'ownership', label: 'Ownership History' },
+  { value: 'verification', label: 'Verification History' },
+];
 
 export default function LandRecordDetailPage() {
   const { recordId } = useParams<{ recordId: string }>();
   const navigate = useNavigate();
+  const [tab, setTab] = useState<Tab>('overview');
 
-  const record = getRecordById(recordId || 'REC-KA-BLR-104A');
-  const [activeTab, setActiveTab] = useState<'Overview' | 'Documents' | 'Ownership History' | 'Verification History'>('Overview');
+  const record = getRecordById(recordId || '');
 
   if (!record) {
     return (
-      <div className="p-12 text-center space-y-4">
-        <h2 className="text-xl font-bold text-white">Record Not Found</h2>
-        <p className="text-sm text-[#94A39B]">The requested land record ID does not exist in the archive.</p>
-        <button
-          onClick={() => navigate('/land-records')}
-          className="py-2 px-4 rounded-xl bg-emerald-700 text-white text-xs font-medium"
-        >
-          Return to Land Records
-        </button>
-      </div>
+      <Panel>
+        <div className="py-12 text-center">
+          <h2 className="text-[16px] font-semibold text-ink">Record not found</h2>
+          <p className="mt-1.5 text-[13px] text-ink-3">No land record matches “{recordId}”.</p>
+          <Button variant="primary" className="mt-5" onClick={() => navigate('/land-records')}>
+            Back to Land Records
+          </Button>
+        </div>
+      </Panel>
     );
   }
 
-  const tabs: Array<'Overview' | 'Documents' | 'Ownership History' | 'Verification History'> = [
-    'Overview',
-    'Documents',
-    'Ownership History',
-    'Verification History',
-  ];
-
   return (
-    <div className="space-y-6">
-      {/* Header & Breadcrumbs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <button
-              onClick={() => navigate('/land-records')}
-              className="text-xs text-[#94A39B] hover:text-white transition-colors"
-            >
-              Land Records Archive
-            </button>
-            <span className="text-xs text-[#64756D]">/</span>
-            <span className="text-xs font-mono text-emerald-400 font-medium">{record.recordId}</span>
-          </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
-            Cadastral Parcel: Survey No. {record.surveyNo}
-          </h1>
-          <p className="text-xs text-[#94A39B] mt-0.5">
-            {record.village} Village · {record.taluk} Taluk · {record.district}
-          </p>
-        </div>
+    <>
+      <PageHeader
+        title={record.recordId}
+        subtitle={`${record.recordType} · Survey ${record.surveyNo} · ${record.village}, ${record.taluk}, ${record.district}`}
+        actions={
+          <>
+            <StatusBadge status={record.status} />
+            <Button variant="secondary" size="sm" onClick={() => navigate('/land-records')}>
+              Back to Records
+            </Button>
+          </>
+        }
+      />
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/land-records')}
-            className="py-2 px-3.5 rounded-xl bg-[#161E1B] hover:bg-[#1E2824] text-[#F3F4F1] text-xs font-medium border border-white/[0.08] transition-colors"
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+        <div className="xl:col-span-8">
+          <Panel
+            title="Record Details"
+            actions={<SegmentedControl<Tab> options={TABS} value={tab} onChange={setTab} />}
           >
-            ← Back to Archive
-          </button>
-          <span className="inline-flex px-3 py-1 rounded-full text-xs font-medium border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-            {record.status}
-          </span>
-        </div>
-      </div>
+            {tab === 'overview' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
+                <KeyValueList>
+                  <KeyValue label="Owner">{record.ownerName}</KeyValue>
+                  <KeyValue label="Father / Husband">{record.fatherOrHusbandName}</KeyValue>
+                  <KeyValue label="Survey number">
+                    <span className="tnum">{record.surveyNo}</span>
+                  </KeyValue>
+                  <KeyValue label="Land area">{record.landArea}</KeyValue>
+                  <KeyValue label="Record type">{record.recordType}</KeyValue>
+                </KeyValueList>
+                <KeyValueList>
+                  <KeyValue label="Village">{record.village}</KeyValue>
+                  <KeyValue label="Taluk">{record.taluk}</KeyValue>
+                  <KeyValue label="District">{record.district}</KeyValue>
+                  <KeyValue label="Soil classification">{record.soilClassification}</KeyValue>
+                  <KeyValue label="Annual assessment">{record.annualTax}</KeyValue>
+                </KeyValueList>
+              </div>
+            )}
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-white/[0.08] pb-1">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`py-2 px-4 rounded-xl text-xs font-medium transition-colors ${
-              activeTab === tab
-                ? 'bg-[#161E1B] text-white border border-emerald-500/30 font-semibold'
-                : 'text-[#94A39B] hover:text-white hover:bg-white/[0.03]'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab 1: Overview */}
-      {activeTab === 'Overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-8 p-6 rounded-2xl bg-[#161E1B] border border-white/[0.08] space-y-5">
-            <h2 className="text-base font-semibold text-white pb-3 border-b border-white/[0.08]">
-              Cadastral Title Overview
-            </h2>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
-              <div>
-                <p className="text-[#94A39B]">Registered Owner</p>
-                <p className="text-sm font-semibold text-white mt-1">{record.ownerName}</p>
-                <p className="text-[11px] text-[#64756D]">Relation: {record.fatherOrHusbandName}</p>
-              </div>
-              <div>
-                <p className="text-[#94A39B]">Survey Number</p>
-                <p className="text-sm font-mono font-bold text-emerald-400 mt-1">Sy. {record.surveyNo}</p>
-              </div>
-              <div>
-                <p className="text-[#94A39B]">Land Extent / Area</p>
-                <p className="text-sm font-semibold text-white mt-1">{record.landArea}</p>
-              </div>
-              <div>
-                <p className="text-[#94A39B]">Village &amp; Taluk</p>
-                <p className="font-medium text-white mt-1">{record.village}, {record.taluk}</p>
-              </div>
-              <div>
-                <p className="text-[#94A39B]">District</p>
-                <p className="font-medium text-white mt-1">{record.district}</p>
-              </div>
-              <div>
-                <p className="text-[#94A39B]">Record Type</p>
-                <p className="font-medium text-white mt-1">{record.recordType}</p>
-              </div>
-              <div>
-                <p className="text-[#94A39B]">Soil Classification</p>
-                <p className="font-medium text-white mt-1">{record.soilClassification}</p>
-              </div>
-              <div>
-                <p className="text-[#94A39B]">Annual Assessment Tax</p>
-                <p className="font-medium text-white mt-1">{record.annualTax}</p>
-              </div>
-              <div>
-                <p className="text-[#94A39B]">GPS Centroid Coordinates</p>
-                <p className="font-mono text-emerald-300 mt-1">{record.gpsCentroid}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-4 p-6 rounded-2xl bg-[#161E1B] border border-white/[0.08] space-y-4">
-            <h2 className="text-base font-semibold text-white pb-3 border-b border-white/[0.08]">
-              Verification Status
-            </h2>
-            <div className="p-4 rounded-xl bg-[#0F1513] border border-white/[0.06] space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-[#94A39B]">Status:</span>
-                <span className="font-semibold text-emerald-400">{record.status}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#94A39B]">Last Re-verification:</span>
-                <span className="text-slate-200">{record.lastUpdated}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#94A39B]">Digital Certificate:</span>
-                <span className="font-mono text-cyan-400">SHA-256 Valid</span>
-              </div>
-            </div>
-            <button
-              onClick={() => alert(`Official extract generated for Survey No. ${record.surveyNo}`)}
-              className="w-full py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-medium transition-colors"
-            >
-              Export RoR Extract (PDF)
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Tab 2: Documents */}
-      {activeTab === 'Documents' && (
-        <div className="p-6 rounded-2xl bg-[#161E1B] border border-white/[0.08] space-y-4">
-          <h2 className="text-base font-semibold text-white pb-3 border-b border-white/[0.08]">
-            Linked Official Instruments &amp; Deeds
-          </h2>
-          <div className="space-y-3">
-            {record.documents.map((doc, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-xl bg-[#0F1513] border border-white/[0.06] flex items-center justify-between"
-              >
-                <div>
-                  <p className="text-xs font-semibold text-white">{doc.title}</p>
-                  <p className="text-[11px] text-[#94A39B] mt-0.5">
-                    Category: {doc.type} · Registered Date: {doc.date}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`text-[11px] px-2.5 py-0.5 rounded-full border ${doc.verified ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
-                    {doc.verified ? 'Verified Document' : 'Pending Sign-off'}
-                  </span>
-                  <button
-                    onClick={() => navigate('/analysis')}
-                    className="text-xs text-emerald-400 hover:text-emerald-300 font-medium"
+            {tab === 'documents' && (
+              <ul className="space-y-2.5">
+                {record.documents.map((d) => (
+                  <li
+                    key={d.title}
+                    className="flex items-center justify-between gap-4 rounded-ctl border border-line bg-raised px-4 py-3.5"
                   >
-                    Inspect →
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-ctl bg-panel text-ink-2">
+                        <FileText size={15} strokeWidth={1.9} />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] text-ink">{d.title}</p>
+                        <p className="text-[11.5px] text-ink-3">
+                          {d.type} · {d.date}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge tone={d.verified ? 'ok' : 'warn'}>
+                      <span className="flex items-center gap-1">
+                        {d.verified ? <Check size={11} strokeWidth={2.4} /> : <X size={11} strokeWidth={2.4} />}
+                        {d.verified ? 'Verified' : 'Pending'}
+                      </span>
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {tab === 'ownership' && (
+              <ol className="space-y-0">
+                {record.ownershipHistory.map((e, i) => (
+                  <li key={e.documentRef} className="flex gap-4">
+                    <div className="flex flex-col items-center">
+                      <span className="tnum grid h-9 w-12 shrink-0 place-items-center rounded-ctl bg-raised text-[12px] font-medium text-ink-2">
+                        {e.year}
+                      </span>
+                      {i < record.ownershipHistory.length - 1 && (
+                        <span className="my-1 w-px flex-1 bg-line" />
+                      )}
+                    </div>
+                    <div className="pb-6 min-w-0">
+                      <p className="text-[13px] font-medium text-ink">{e.type}</p>
+                      <p className="mt-1 text-[12.5px] leading-relaxed text-ink-2">
+                        {e.description}
+                      </p>
+                      <p className="mt-1.5 text-[11.5px] text-ink-3">
+                        {e.parties} · {e.documentRef}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
+
+            {tab === 'verification' && (
+              <ul className="space-y-2.5">
+                {record.verificationHistory.map((v) => (
+                  <li key={v.date} className="rounded-ctl border border-line bg-raised px-4 py-3.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-[13px] font-medium text-ink">{v.outcome}</p>
+                      <p className="text-[11.5px] text-ink-3">{v.date}</p>
+                    </div>
+                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-2">{v.remarks}</p>
+                    <p className="mt-1.5 text-[11.5px] text-ink-3">{v.officer}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
         </div>
-      )}
 
-      {/* Tab 3: Ownership History (Vertical Timeline) */}
-      {activeTab === 'Ownership History' && (
-        <div className="p-6 rounded-2xl bg-[#161E1B] border border-white/[0.08] space-y-6">
-          <div>
-            <h2 className="text-base font-semibold text-white">Title Succession &amp; Mutation History</h2>
-            <p className="text-xs text-[#94A39B] mt-0.5">
-              Chronological title transactions recorded in state land revenue archives.
-            </p>
-          </div>
+        <div className="xl:col-span-4 space-y-5">
+          <Panel title="Record Summary">
+            <KeyValueList>
+              <KeyValue label="Status">
+                <StatusBadge status={record.status} />
+              </KeyValue>
+              <KeyValue label="Last updated">{record.lastUpdated}</KeyValue>
+              <KeyValue label="Documents on file">
+                <span className="tnum">{record.documents.length}</span>
+              </KeyValue>
+              <KeyValue label="Ownership events">
+                <span className="tnum">{record.ownershipHistory.length}</span>
+              </KeyValue>
+              <KeyValue label="GPS centroid">
+                <span className="tnum">{record.gpsCentroid}</span>
+              </KeyValue>
+            </KeyValueList>
+          </Panel>
 
-          <div className="relative pl-6 space-y-8 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-emerald-500/30">
-            {record.ownershipHistory.map((item, idx) => (
-              <div key={idx} className="relative group">
-                <div className="absolute -left-6 top-1.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#161E1B]" />
-                <div className="p-4 rounded-xl bg-[#0F1513] border border-white/[0.06] space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-emerald-400">{item.year}</span>
-                    <span className="text-[11px] text-[#94A39B] font-mono">{item.documentRef}</span>
-                  </div>
-                  <p className="text-xs font-semibold text-white">{item.type}</p>
-                  <p className="text-xs text-[#94A39B] leading-relaxed">{item.description}</p>
-                  <p className="text-[11px] text-slate-300 pt-1">
-                    <strong className="text-slate-400">Parties:</strong> {item.parties}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Tab 4: Verification History */}
-      {activeTab === 'Verification History' && (
-        <div className="p-6 rounded-2xl bg-[#161E1B] border border-white/[0.08] space-y-4">
-          <h2 className="text-base font-semibold text-white pb-3 border-b border-white/[0.08]">
-            Audit &amp; Officer Sign-Off Logs
-          </h2>
-          <div className="space-y-3">
-            {record.verificationHistory.map((v, idx) => (
+          <Panel title="Parcel Location" subtitle="Indicative position from the cadastral survey.">
+            <div className="relative h-[190px] overflow-hidden rounded-ctl border border-line bg-raised">
               <div
-                key={idx}
-                className="p-4 rounded-xl bg-[#0F1513] border border-white/[0.06] space-y-1.5 text-xs"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-white">{v.outcome}</span>
-                  <span className="text-[#94A39B] font-mono text-[11px]">{v.date}</span>
-                </div>
-                <p className="text-[#94A39B]">Officer: <span className="text-slate-200">{v.officer}</span></p>
-                <p className="text-slate-300 pt-1 border-t border-white/[0.04]">{v.remarks}</p>
-              </div>
-            ))}
-          </div>
+                className="absolute inset-0 opacity-40"
+                style={{
+                  backgroundImage:
+                    'linear-gradient(to right, #333 1px, transparent 1px), linear-gradient(to bottom, #333 1px, transparent 1px)',
+                  backgroundSize: '28px 28px',
+                }}
+              />
+              <div className="absolute left-1/2 top-1/2 h-14 w-20 -translate-x-1/2 -translate-y-1/2 rounded-[4px] border-2 border-accent bg-accent/15" />
+              <p className="tnum absolute inset-x-0 bottom-3 text-center text-[11.5px] text-ink-3">
+                {record.gpsCentroid}
+              </p>
+            </div>
+          </Panel>
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 }

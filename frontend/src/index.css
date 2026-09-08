@@ -1,83 +1,107 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
-:root {
-  /* BhuSatya Dark Government Enterprise Design System */
-  --bs-bg-main: #0F1513;
-  --bs-bg-sidebar: #0A0E0D;
-  --bs-surface: #161E1B;
-  --bs-surface-elevated: #1E2824;
-  --bs-surface-highlight: #24322C;
-  --bs-border: rgba(255, 255, 255, 0.08);
-  --bs-border-subtle: rgba(255, 255, 255, 0.05);
+/* ═══════════════════════════════════════════════════════════════
+   BhuSatya — Officer Portal Design Tokens
+   Restrained dark enterprise surface + one warm accent.
+   Every internal page draws from this single source.
+   ═══════════════════════════════════════════════════════════════ */
 
-  --bs-text-primary: #F3F4F1;
-  --bs-text-secondary: #94A39B;
-  --bs-text-muted: #64756D;
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  --bs-accent-primary: #10B981;
-  --bs-accent-hover: #059669;
-  --bs-accent-subtle: rgba(16, 185, 129, 0.12);
-  --bs-accent-border: rgba(16, 185, 129, 0.28);
+  /* Surfaces — near-black page, charcoal panels, medium-gray cards */
+  --color-page: #121212;
+  --color-sidebar: #0d0d0d;
+  --color-panel: #1b1b1b;
+  --color-raised: #242424;
+  --color-raised-2: #2c2c2c;
 
-  --bs-warning: #F59E0B;
-  --bs-warning-subtle: rgba(245, 158, 11, 0.12);
-  --bs-warning-border: rgba(245, 158, 11, 0.28);
+  /* Borders — soft, low contrast */
+  --color-line: #2b2b2b;
+  --color-line-strong: #383838;
 
-  --bs-danger: #EF4444;
-  --bs-danger-subtle: rgba(239, 68, 68, 0.12);
-  --bs-danger-border: rgba(239, 68, 68, 0.28);
+  /* Text */
+  --color-ink: #f4f4f4;
+  --color-ink-2: #a9a9a9;
+  --color-ink-3: #7c7c7c;
 
-  --bs-info: #06B6D4;
-  --bs-info-subtle: rgba(6, 182, 212, 0.12);
-  --bs-info-border: rgba(6, 182, 212, 0.28);
+  /* Single accent — muted earthy terracotta */
+  --color-accent: #c96b32;
+  --color-accent-hi: #d97b3f;
+  --color-accent-lo: #a9541f;
 
-  /* Legacy Slate/Navy fallback mapping */
-  --navy-900: #0F1513;
-  --navy-800: #161E1B;
-  --navy-700: #1E2824;
-  --navy-600: #24322C;
-  --slate-500: #64756D;
-  --slate-400: #94A39B;
-  --slate-300: #C2CBC6;
-  --slate-200: #E1E6E3;
-  --slate-100: #F3F4F1;
-  --slate-50: #FAFAF9;
+  /* Status — used only in small badges */
+  --color-ok: #7f9668;
+  --color-warn: #c2963f;
+  --color-danger: #a8564b;
+  --color-neutral: #74838f;
+
+  /* Document element detection tints */
+  --color-det-text: #7c93a8;
+  --color-det-table: #7f9668;
+  --color-det-sign: #c2963f;
+  --color-det-stamp: #c96b32;
+
+  /* Consistent radii */
+  --radius-card: 12px;
+  --radius-ctl: 9px;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-line);
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-page);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Native controls inherit the dark surface instead of the OS default */
+  select option {
+    background-color: #1b1b1b;
+    color: #f4f4f4;
+  }
+
+  ::selection {
+    background-color: rgba(201, 107, 50, 0.3);
+  }
 }
 
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: var(--bs-bg-main);
-  color: var(--bs-text-primary);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer utilities {
+  /* Numerals in tables and metrics align column-to-column */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .scrollbar-slim {
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
+  }
 }
 
-/* Monospace used STRICTLY for technical identifiers (Case IDs, Survey Numbers, Hashes) */
-.font-mono, .id-badge {
-  font-family: 'JetBrains Mono', monospace;
-  letter-spacing: -0.02em;
-}
-
-/* Custom Sleek Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0A0E0D;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #24322C;
-  border-radius: 3px;
+  background: #2f2f2f;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #364941;
+  background: #3d3d3d;
 }

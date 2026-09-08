@@ -1,346 +1,294 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowRight, Check, Flag, PenLine } from 'lucide-react';
+import PageHeader from '../components/ui/PageHeader';
+import Panel from '../components/ui/Panel';
+import Button from '../components/ui/Button';
+import Modal from '../components/ui/Modal';
+import { StatusBadge } from '../components/ui/Badge';
+import { KeyValue, KeyValueList } from '../components/ui/KeyValue';
+import { Label, TextArea } from '../components/ui/Field';
 import { getCaseById, updateCaseStatus, type VerificationCase } from '../data/mockCases';
+
+type Decision = 'Approved' | 'Needs Review' | 'Flagged';
+
+const DECISION_COPY: Record<Decision, { title: string; body: string; cta: string }> = {
+  Approved: {
+    title: 'Approve this case',
+    body: 'The land record will be marked verified and the decision written to the audit trail.',
+    cta: 'Approve case',
+  },
+  'Needs Review': {
+    title: 'Send for manual review',
+    body: 'The case stays open and is referred for a physical or supervisory check.',
+    cta: 'Send for review',
+  },
+  Flagged: {
+    title: 'Reject this case',
+    body: 'The case is flagged for dispute resolution and will not update the land record.',
+    cta: 'Reject case',
+  },
+};
 
 export default function VerificationCaseDetailPage() {
   const { caseId } = useParams<{ caseId: string }>();
   const navigate = useNavigate();
 
-  // Load case or fallback
-  const caseData = getCaseById(caseId || 'BLR-2026-8819');
-  const [currentCase, setCurrentCase] = useState<VerificationCase | undefined>(caseData);
-
-  // Modal State
-  const [confirmAction, setConfirmAction] = useState<'Approved' | 'Needs Review' | 'Flagged' | null>(null);
-  const [officerNote, setOfficerNote] = useState('');
+  const [current, setCurrent] = useState<VerificationCase | undefined>(() =>
+    getCaseById(caseId || 'BLR-2026-8819')
+  );
+  const [decision, setDecision] = useState<Decision | null>(null);
+  const [note, setNote] = useState('');
   const [noteError, setNoteError] = useState('');
 
-  if (!currentCase) {
+  if (!current) {
     return (
-      <div className="p-12 text-center space-y-4">
-        <h2 className="text-xl font-bold text-white">Case Not Found</h2>
-        <p className="text-sm text-[#94A39B]">The requested case ID does not exist.</p>
-        <button
-          onClick={() => navigate('/verification')}
-          className="py-2 px-4 rounded-xl bg-emerald-700 text-white text-xs font-medium"
-        >
-          Return to Cases List
-        </button>
-      </div>
+      <Panel>
+        <div className="py-12 text-center">
+          <h2 className="text-[16px] font-semibold text-ink">Case not found</h2>
+          <p className="mt-1.5 text-[13px] text-ink-3">
+            No verification case matches “{caseId}”.
+          </p>
+          <Button variant="primary" className="mt-5" onClick={() => navigate('/verification')}>
+            Back to Verification Cases
+          </Button>
+        </div>
+      </Panel>
     );
   }
 
-  const handleDecisionClick = (action: 'Approved' | 'Needs Review' | 'Flagged') => {
-    setConfirmAction(action);
-    setOfficerNote('');
+  const openDecision = (d: Decision) => {
+    setDecision(d);
+    setNote('');
     setNoteError('');
   };
 
-  const handleConfirmDecision = () => {
-    if ((confirmAction === 'Needs Review' || confirmAction === 'Flagged') && !officerNote.trim()) {
-      setNoteError('Officer remarks/notes are required for this action.');
+  const confirm = () => {
+    if (!decision) return;
+    if (decision !== 'Approved' && !note.trim()) {
+      setNoteError('A short note is required for this decision.');
       return;
     }
-
-    if (confirmAction) {
-      const updated = updateCaseStatus(currentCase.id, confirmAction, officerNote.trim());
-      if (updated) {
-        setCurrentCase(updated);
-      }
-      setConfirmAction(null);
-    }
+    const updated = updateCaseStatus(current.id, decision, note.trim());
+    if (updated) setCurrent(updated);
+    setDecision(null);
   };
 
-  const getStatusBadge = (status: VerificationCase['status']) => {
-    switch (status) {
-      case 'Approved':
-        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-      case 'Needs Review':
-        return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      case 'Flagged':
-        return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
-      case 'Pending':
-      default:
-        return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20';
-    }
-  };
+  const findings: [string, string][] = [
+    ['Text', current.findings.textDetected],
+    ['Tables', current.findings.tablesDetected],
+    ['Signature', current.findings.signatureDetected],
+    ['Stamp', current.findings.stampDetected],
+    ['Inconsistencies', current.findings.inconsistencies],
+  ];
 
   return (
-    <div className="space-y-6">
-      {/* Top Breadcrumb & Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <button
-              onClick={() => navigate('/verification')}
-              className="text-xs text-[#94A39B] hover:text-white transition-colors"
+    <>
+      <PageHeader
+        title={`Case ${current.id}`}
+        subtitle={`${current.docType} · ${current.village}, ${current.taluk}, ${current.district}`}
+        actions={
+          <>
+            <StatusBadge status={current.status} />
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => navigate(`/analysis/${current.id}`)}
+              iconRight={<ArrowRight size={14} strokeWidth={2} />}
             >
-              Verification Cases
-            </button>
-            <span className="text-xs text-[#64756D]">/</span>
-            <span className="text-xs font-mono text-emerald-400 font-medium">{currentCase.id}</span>
-          </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
-            Case Adjudication Desk
-          </h1>
-        </div>
+              View document analysis
+            </Button>
+          </>
+        }
+      />
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate(`/analysis/${currentCase.id}`)}
-            className="py-2 px-3.5 rounded-xl bg-[#161E1B] hover:bg-[#1E2824] text-[#F3F4F1] text-xs font-medium border border-white/[0.08] transition-colors"
-          >
-            Inspect AI Detection Overlay →
-          </button>
-          <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${getStatusBadge(currentCase.status)}`}>
-            Status: {currentCase.status}
-          </span>
-        </div>
-      </div>
-
-      {/* 2-Panel Workspace: Left Document Preview / Right Officer Review */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEFT: Document Preview (7 cols) */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="p-4 rounded-2xl bg-[#161E1B] border border-white/[0.08]">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06] mb-4">
-              <span className="text-xs font-semibold text-white">Document Preview</span>
-              <span className="text-xs text-[#94A39B]">Page 1 of 2</span>
-            </div>
-
-            {/* Simulated Document Preview Container */}
-            <div className="bg-[#fbf9f4] text-slate-900 rounded-xl p-6 shadow-md select-none border border-slate-300 min-h-[460px] text-xs font-serif leading-relaxed">
-              <div className="text-center pb-3 border-b border-slate-400/60 mb-3">
-                <p className="text-[9px] tracking-widest text-slate-600 uppercase">
-                  GOVERNMENT OF KARNATAKA · REVENUE DEPARTMENT
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+        {/* Document */}
+        <div className="xl:col-span-7 xl:sticky xl:top-0">
+          <Panel title="Document Preview" actions={<span className="text-[12px] text-ink-3">Page 1 of 2</span>}>
+            <div className="min-h-[440px] select-none rounded-ctl border border-slate-300 bg-[#faf8f3] p-6 font-serif text-[12px] leading-relaxed text-slate-800">
+              <div className="mb-3 border-b border-slate-400 pb-3 text-center">
+                <p className="text-[9.5px] uppercase tracking-[0.16em] text-slate-500">
+                  Government of Karnataka · Revenue Department
                 </p>
-                <p className="font-bold text-sm text-slate-900 mt-0.5">
-                  {currentCase.docType.toUpperCase()}
-                </p>
-                <p className="text-[10px] text-slate-500 font-mono">
-                  Survey No: {currentCase.surveyNo} · Extent: {currentCase.extent}
+                <p className="mt-1 text-[14px] font-bold text-slate-900">{current.docType}</p>
+                <p className="mt-0.5 text-[10px] text-slate-500">
+                  Survey No. {current.surveyNo} · Extent {current.extent}
                 </p>
               </div>
 
-              <p className="mb-2">
-                This official instrument confirms that <strong className="font-sans">{currentCase.ownerName}</strong> is
-                registered as the titleholder for the parcel situated in <strong className="font-sans">{currentCase.village} Village</strong>,{' '}
-                <strong className="font-sans">{currentCase.taluk} Taluk</strong>, <strong className="font-sans">{currentCase.district}</strong>.
+              <p>
+                This instrument records that{' '}
+                <strong className="font-sans font-semibold">{current.ownerName}</strong> is
+                registered as the titleholder of the parcel situated in{' '}
+                <strong className="font-sans font-semibold">{current.village} Village</strong>,{' '}
+                {current.taluk} Taluk, {current.district}.
               </p>
 
-              <div className="my-3 p-3 bg-slate-100 rounded border border-slate-300 font-sans text-[11px] space-y-1">
+              <div className="my-4 space-y-1.5 rounded border border-slate-300 bg-slate-100 p-3 font-sans text-[11px]">
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Document Type:</span>
-                  <span className="font-semibold">{currentCase.docType}</span>
+                  <span className="text-slate-500">Document type</span>
+                  <span className="font-semibold">{current.docType}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Survey Number:</span>
-                  <span className="font-mono font-bold">Sy. {currentCase.surveyNo}</span>
+                  <span className="text-slate-500">Survey number</span>
+                  <span className="font-semibold">Sy. {current.surveyNo}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Jurisdiction:</span>
-                  <span>{currentCase.village}, {currentCase.taluk}, {currentCase.district}</span>
+                  <span className="text-slate-500">Jurisdiction</span>
+                  <span>
+                    {current.village}, {current.taluk}, {current.district}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Registered on</span>
+                  <span>{current.uploadDate}</span>
                 </div>
               </div>
 
-              <div className="mt-8 pt-4 border-t border-slate-300 flex items-end justify-between">
-                <div className="w-24 h-20 border-2 border-purple-800 rounded-full flex flex-col items-center justify-center text-[7px] text-purple-900 font-bold p-1">
+              <div className="mt-8 flex items-end justify-between border-t border-slate-300 pt-5">
+                <div className="flex h-20 w-24 flex-col items-center justify-center rounded-full border-2 border-slate-500 p-1 text-[7px] font-semibold text-slate-600">
                   <span>OFFICIAL</span>
                   <span>TALUK SEAL</span>
                   <span>VERIFIED</span>
                 </div>
                 <div className="text-right">
-                  <div className="w-28 h-6 border-b border-slate-400 italic text-[11px] text-blue-900 mb-1 flex items-center justify-center">
-                    Authorized Sign
+                  <div className="mb-1 flex h-6 w-28 items-center justify-center border-b border-slate-400 text-[11px] italic text-slate-700">
+                    Authorized sign
                   </div>
-                  <span className="text-[9px] font-sans font-semibold text-slate-600">
-                    Revenue Officer Endorsement
+                  <span className="font-sans text-[9px] font-semibold text-slate-500">
+                    Revenue officer endorsement
                   </span>
                 </div>
               </div>
             </div>
-          </div>
+          </Panel>
         </div>
 
-        {/* RIGHT: Officer Review & Decision Desk (5 cols) */}
-        <div className="lg:col-span-5 space-y-5">
-          {/* Metadata & Case Details */}
-          <div className="p-6 rounded-2xl bg-[#161E1B] border border-white/[0.08] space-y-4">
-            <h2 className="text-base font-semibold text-white pb-3 border-b border-white/[0.08]">
-              Case Particulars
-            </h2>
+        {/* Officer review */}
+        <div className="xl:col-span-5 space-y-5">
+          <Panel title="Case Details">
+            <KeyValueList>
+              <KeyValue label="Case ID">
+                <span className="tnum">{current.id}</span>
+              </KeyValue>
+              <KeyValue label="Document type">{current.docType}</KeyValue>
+              <KeyValue label="Location">
+                {current.village}, {current.taluk}
+              </KeyValue>
+              <KeyValue label="District">{current.district}</KeyValue>
+              <KeyValue label="Survey number">
+                <span className="tnum">{current.surveyNo}</span>
+              </KeyValue>
+              <KeyValue label="Extent">{current.extent}</KeyValue>
+              <KeyValue label="Document quality">{current.documentQuality}</KeyValue>
+              <KeyValue label="Current status">
+                <StatusBadge status={current.status} />
+              </KeyValue>
+            </KeyValueList>
+          </Panel>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <p className="text-[#94A39B]">Case ID</p>
-                <p className="font-mono font-medium text-emerald-400 mt-0.5">{currentCase.id}</p>
-              </div>
-              <div>
-                <p className="text-[#94A39B]">Document Type</p>
-                <p className="font-medium text-white mt-0.5">{currentCase.docType}</p>
-              </div>
-              <div>
-                <p className="text-[#94A39B]">District &amp; Taluk</p>
-                <p className="font-medium text-white mt-0.5">{currentCase.district}, {currentCase.taluk}</p>
-              </div>
-              <div>
-                <p className="text-[#94A39B]">Village &amp; Survey</p>
-                <p className="font-medium text-white mt-0.5">{currentCase.village} · Sy. {currentCase.surveyNo}</p>
-              </div>
-              <div>
-                <p className="text-[#94A39B]">Upload Date</p>
-                <p className="text-white mt-0.5">{currentCase.uploadDate}</p>
-              </div>
-              <div>
-                <p className="text-[#94A39B]">Document Quality</p>
-                <p className="text-emerald-400 font-medium mt-0.5">{currentCase.documentQuality}</p>
-              </div>
-            </div>
-          </div>
+          <Panel title="AI-Assisted Findings" subtitle="Advisory only — the officer decides.">
+            <p className="rounded-ctl border border-line bg-raised p-3.5 text-[12.5px] leading-relaxed text-ink-2">
+              {current.findings.summary}
+            </p>
+            <dl className="mt-4 space-y-3">
+              {findings.map(([label, value]) => (
+                <div key={label}>
+                  <dt className="text-[12px] font-medium text-ink">{label}</dt>
+                  <dd className="mt-0.5 text-[12.5px] leading-relaxed text-ink-3">{value}</dd>
+                </div>
+              ))}
+            </dl>
 
-          {/* AI-Assisted Findings */}
-          <div className="p-6 rounded-2xl bg-[#161E1B] border border-white/[0.08] space-y-3.5">
-            <h2 className="text-base font-semibold text-white">AI-Assisted Findings</h2>
-
-            <div className="p-3 rounded-xl bg-[#0F1513] border border-white/[0.06] text-xs text-[#94A39B] leading-relaxed">
-              <span className="font-medium text-white block mb-1">Evidentiary Summary:</span>
-              {currentCase.findings.summary}
-            </div>
-
-            <div className="space-y-2 text-xs">
-              <div className="flex items-start gap-2">
-                <span className="text-cyan-400 shrink-0 font-bold">•</span>
-                <span className="text-[#94A39B]"><strong className="text-slate-200">Text Detected:</strong> {currentCase.findings.textDetected}</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-emerald-400 shrink-0 font-bold">•</span>
-                <span className="text-[#94A39B]"><strong className="text-slate-200">Tables Detected:</strong> {currentCase.findings.tablesDetected}</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-amber-400 shrink-0 font-bold">•</span>
-                <span className="text-[#94A39B]"><strong className="text-slate-200">Signature Detected:</strong> {currentCase.findings.signatureDetected}</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-purple-400 shrink-0 font-bold">•</span>
-                <span className="text-[#94A39B]"><strong className="text-slate-200">Stamp Detected:</strong> {currentCase.findings.stampDetected}</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-rose-400 shrink-0 font-bold">•</span>
-                <span className="text-[#94A39B]"><strong className="text-slate-200">Potential Inconsistencies:</strong> {currentCase.findings.inconsistencies}</span>
-              </div>
-            </div>
-
-            {currentCase.officerNotes && (
-              <div className="p-3 rounded-xl bg-[#1E2824] border border-emerald-500/20 text-xs">
-                <span className="font-medium text-emerald-300 block mb-1">Recorded Officer Remarks:</span>
-                <p className="text-slate-200">{currentCase.officerNotes}</p>
-                {currentCase.reviewedAt && (
-                  <p className="text-[10px] text-[#94A39B] mt-1">{currentCase.reviewedAt}</p>
+            {current.officerNotes && (
+              <div className="mt-4 rounded-ctl border border-line bg-raised p-3.5">
+                <p className="text-[12px] font-medium text-ink">Officer remarks</p>
+                <p className="mt-1 text-[12.5px] leading-relaxed text-ink-2">
+                  {current.officerNotes}
+                </p>
+                {current.reviewedAt && (
+                  <p className="mt-1.5 text-[11.5px] text-ink-3">{current.reviewedAt}</p>
                 )}
               </div>
             )}
-          </div>
+          </Panel>
 
-          {/* Officer Decision Buttons */}
-          <div className="p-6 rounded-2xl bg-[#161E1B] border border-white/[0.08] space-y-3">
-            <h2 className="text-base font-semibold text-white">Officer Decision</h2>
-            <p className="text-xs text-[#94A39B]">
-              The authorized revenue officer makes the final legal determination on land documents.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
-              <button
-                onClick={() => handleDecisionClick('Approved')}
-                className="py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-medium text-xs transition-colors shadow-sm"
+          <Panel
+            title="Officer Decision"
+            subtitle="Recorded against your officer ID and written to the audit trail."
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <Button
+                variant="approve"
+                icon={<Check size={14} strokeWidth={2.2} />}
+                onClick={() => openDecision('Approved')}
               >
-                ✓ Approve
-              </button>
-
-              <button
-                onClick={() => handleDecisionClick('Needs Review')}
-                className="py-2.5 px-3 rounded-xl bg-amber-700/80 hover:bg-amber-600 text-white font-medium text-xs transition-colors"
+                Approve
+              </Button>
+              <Button
+                variant="review"
+                icon={<PenLine size={14} strokeWidth={2} />}
+                onClick={() => openDecision('Needs Review')}
               >
                 Manual Review
-              </button>
-
-              <button
-                onClick={() => handleDecisionClick('Flagged')}
-                className="py-2.5 px-3 rounded-xl bg-rose-700/80 hover:bg-rose-600 text-white font-medium text-xs transition-colors"
+              </Button>
+              <Button
+                variant="reject"
+                icon={<Flag size={14} strokeWidth={2} />}
+                onClick={() => openDecision('Flagged')}
               >
-                Flag / Reject
-              </button>
+                Reject
+              </Button>
             </div>
-          </div>
+          </Panel>
         </div>
       </div>
 
-      {/* Confirmation Modal */}
-      {confirmAction && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#161E1B] border border-white/[0.12] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-              <h3 className="text-base font-semibold text-white">
-                Confirm Officer Decision: {confirmAction}
-              </h3>
-              <button
-                onClick={() => setConfirmAction(null)}
-                className="text-[#94A39B] hover:text-white text-sm"
-              >
-                ✕
-              </button>
-            </div>
+      <Modal
+        open={decision !== null}
+        onClose={() => setDecision(null)}
+        title={decision ? DECISION_COPY[decision].title : ''}
+        subtitle={decision ? DECISION_COPY[decision].body : ''}
+        footer={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setDecision(null)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              variant={
+                decision === 'Approved' ? 'approve' : decision === 'Needs Review' ? 'review' : 'reject'
+              }
+              onClick={confirm}
+            >
+              {decision ? DECISION_COPY[decision].cta : ''}
+            </Button>
+          </>
+        }
+      >
+        <p>
+          Case <span className="tnum text-ink">{current.id}</span> · Survey No.{' '}
+          <span className="tnum text-ink">{current.surveyNo}</span>, {current.village}.
+        </p>
 
-            <p className="text-xs text-[#94A39B] leading-relaxed">
-              You are about to record the decision for Case{' '}
-              <strong className="text-white font-mono">{currentCase.id}</strong> (Survey No.{' '}
-              {currentCase.surveyNo}, {currentCase.village}).
-            </p>
-
-            {/* Note field required for Review or Flag */}
-            {(confirmAction === 'Needs Review' || confirmAction === 'Flagged') && (
-              <div>
-                <label className="block text-xs font-medium text-white mb-1.5">
-                  Officer Remarks / Basis for Action <span className="text-rose-400">*</span>
-                </label>
-                <textarea
-                  rows={3}
-                  value={officerNote}
-                  onChange={(e) => {
-                    setOfficerNote(e.target.value);
-                    if (e.target.value.trim()) setNoteError('');
-                  }}
-                  placeholder="Enter details of boundary variance, missing stamp, or referral reason..."
-                  className="w-full p-3 rounded-xl bg-[#0F1513] border border-white/[0.08] text-xs text-white placeholder-[#64756D] focus:outline-none focus:border-emerald-500/40"
-                />
-                {noteError && (
-                  <p className="text-[11px] text-rose-400 mt-1">{noteError}</p>
-                )}
-              </div>
-            )}
-
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/[0.08]">
-              <button
-                onClick={() => setConfirmAction(null)}
-                className="py-2 px-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-xs text-[#94A39B] hover:text-white transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmDecision}
-                className={`py-2 px-4 rounded-xl text-xs font-medium text-white transition-colors ${
-                  confirmAction === 'Approved'
-                    ? 'bg-emerald-700 hover:bg-emerald-600'
-                    : confirmAction === 'Needs Review'
-                    ? 'bg-amber-700 hover:bg-amber-600'
-                    : 'bg-rose-700 hover:bg-rose-600'
-                }`}
-              >
-                Confirm &amp; Sign-Off
-              </button>
-            </div>
-          </div>
+        <div className="mt-4">
+          <Label>
+            Officer note{' '}
+            {decision !== 'Approved' && <span className="text-danger">(required)</span>}
+          </Label>
+          <TextArea
+            rows={3}
+            value={note}
+            onChange={(e) => {
+              setNote(e.target.value);
+              if (e.target.value.trim()) setNoteError('');
+            }}
+            placeholder="Basis for the decision — boundary variance, missing endorsement, referral reason."
+          />
+          {noteError && <p className="mt-1.5 text-[11.5px] text-danger">{noteError}</p>}
         </div>
-      )}
-    </div>
+      </Modal>
+    </>
   );
 }

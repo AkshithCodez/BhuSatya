@@ -68,7 +68,7 @@
 .login-page__back:hover {
   color: #ffffff;
   background: rgba(30, 40, 36, 0.85);
-  border-color: rgba(16, 185, 129, 0.4);
+  border-color: rgba(201, 107, 50, 0.4);
   transform: translateX(-2px);
 }
 
@@ -119,7 +119,7 @@
 
 .login-page__headline-accent {
   display: block;
-  color: #6EE7B7;
+  color: #E3A377;
   font-weight: 600;
 }
 
@@ -128,7 +128,7 @@
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #10B981;
+  color: #C96B32;
   margin: 0 0 12px;
 }
 
@@ -160,8 +160,8 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #10B981;
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
+  background: #C96B32;
+  box-shadow: 0 0 8px rgba(201, 107, 50, 0.8);
 }
 
 /* ─── Right Side Translucent Glass Card ─── */
@@ -199,9 +199,9 @@
   letter-spacing: 0.08em;
   padding: 4px 10px;
   border-radius: 9999px;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #6EE7B7;
+  background: rgba(201, 107, 50, 0.15);
+  border: 1px solid rgba(201, 107, 50, 0.35);
+  color: #E3A377;
   margin-bottom: 10px;
 }
 
@@ -209,7 +209,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #10B981;
+  background: #C96B32;
 }
 
 .login-card__title {
@@ -287,8 +287,8 @@
 }
 
 .login-field__input:focus {
-  border-color: #10B981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  border-color: #C96B32;
+  box-shadow: 0 0 0 3px rgba(201, 107, 50, 0.2);
 }
 
 .login-field__toggle-pw {
@@ -331,7 +331,7 @@
 }
 
 .login-card__forgot-link:hover {
-  color: #10B981;
+  color: #C96B32;
   text-decoration: underline;
 }
 
@@ -339,7 +339,7 @@
 .login-card__btn-primary {
   width: 100%;
   height: 46px;
-  background: #059669;
+  background: #C96B32;
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -348,7 +348,7 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+  box-shadow: 0 4px 14px rgba(201, 107, 50, 0.35);
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
@@ -358,8 +358,8 @@
 }
 
 .login-card__btn-primary:hover:not(:disabled) {
-  background: #047857;
-  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.45);
+  background: #A9541F;
+  box-shadow: 0 6px 18px rgba(201, 107, 50, 0.45);
   transform: translateY(-1px);
 }
 
@@ -454,9 +454,9 @@
 }
 
 .login-card__demo-pill--active {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: #10B981;
-  color: #6EE7B7;
+  background: rgba(201, 107, 50, 0.2);
+  border-color: #C96B32;
+  color: #E3A377;
   font-weight: 500;
 }
 
@@ -469,7 +469,7 @@
 }
 
 .login-card__admin-link {
-  color: #6EE7B7;
+  color: #E3A377;
   text-decoration: none;
   font-weight: 500;
   margin-left: 4px;

@@ -1,105 +1,150 @@
-import { useState } from 'react';
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import {
+  BarChart3,
+  Bell,
+  ClipboardCheck,
+  FileSearch,
+  HelpCircle,
+  History,
+  LayoutDashboard,
+  LogOut,
+  Map,
+  Search,
+  Settings,
+  Upload,
+} from 'lucide-react';
+import Button from '../ui/Button';
+import Modal from '../ui/Modal';
+import { StatusBadge } from '../ui/Badge';
+import { getCases } from '../../data/mockCases';
+import { getRecords } from '../../data/mockRecords';
+import { getAuditLogs } from '../../data/mockAuditLogs';
+
+interface NavItem {
+  label: string;
+  to: string;
+  icon: typeof LayoutDashboard;
+}
+
+const WORK: NavItem[] = [
+  { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
+  { label: 'Upload Document', to: '/upload', icon: Upload },
+  { label: 'Document Analysis', to: '/analysis', icon: FileSearch },
+  { label: 'Verification Cases', to: '/verification', icon: ClipboardCheck },
+  { label: 'Land Records', to: '/land-records', icon: Map },
+];
+
+const MANAGEMENT: NavItem[] = [
+  { label: 'Reports', to: '/reports', icon: BarChart3 },
+  { label: 'Audit Trail', to: '/audit-trail', icon: History },
+  { label: 'Settings', to: '/settings', icon: Settings },
+];
+
+const CRUMBS: Record<string, string> = {
+  dashboard: 'Dashboard',
+  upload: 'Upload Document',
+  processing: 'Processing',
+  analysis: 'Document Analysis',
+  verification: 'Verification Cases',
+  'land-records': 'Land Records',
+  reports: 'Reports',
+  'audit-trail': 'Audit Trail',
+  settings: 'Settings',
+};
+
+function initialsOf(name: string) {
+  return name
+    .replace(/^Officer\s+/i, '')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join('');
+}
 
 export default function PortalLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showHelpModal, setShowHelpModal] = useState(false);
 
-  const userName = localStorage.getItem('userName') || 'Rajesh Kumar';
-  const userRole = localStorage.getItem('userRole') || 'Revenue Officer';
+  const [query, setQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
-  const navItems = [
-    {
-      to: '/dashboard',
-      label: 'Dashboard',
-      icon: (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="3" width="7" height="7" rx="1.5" />
-          <rect x="14" y="3" width="7" height="7" rx="1.5" />
-          <rect x="14" y="14" width="7" height="7" rx="1.5" />
-          <rect x="3" y="14" width="7" height="7" rx="1.5" />
-        </svg>
-      ),
-    },
-    {
-      to: '/upload',
-      label: 'Upload Document',
-      icon: (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="17 8 12 3 7 8" />
-          <line x1="12" y1="3" x2="12" y2="15" />
-        </svg>
-      ),
-    },
-    {
-      to: '/analysis',
-      label: 'Document Analysis',
-      icon: (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          <path d="M11 8v6M8 11h6" />
-        </svg>
-      ),
-    },
-    {
-      to: '/verification',
-      label: 'Verification Cases',
-      badge: '18',
-      icon: (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-          <polyline points="9 15 11 17 15 13" />
-        </svg>
-      ),
-    },
-    {
-      to: '/land-records',
-      label: 'Land Records',
-      icon: (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
-          <line x1="8" y1="2" x2="8" y2="18" />
-          <line x1="16" y1="6" x2="16" y2="22" />
-        </svg>
-      ),
-    },
-    {
-      to: '/reports',
-      label: 'Reports',
-      icon: (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <line x1="18" y1="20" x2="18" y2="10" />
-          <line x1="12" y1="20" x2="12" y2="4" />
-          <line x1="6" y1="20" x2="6" y2="14" />
-        </svg>
-      ),
-    },
-    {
-      to: '/audit-trail',
-      label: 'Audit Trail',
-      icon: (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        </svg>
-      ),
-    },
-    {
-      to: '/settings',
-      label: 'Settings',
-      icon: (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-        </svg>
-      ),
-    },
-  ];
+  const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  const officerName = localStorage.getItem('userName') || 'Officer Rajesh Kumar';
+  const officerRole = localStorage.getItem('userRole') || 'Revenue Verification Officer';
+
+  /* ── Global search over cases + records ─────────────────────── */
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (q.length < 2) return [];
+    const cases = getCases()
+      .filter(
+        (c) =>
+          c.id.toLowerCase().includes(q) ||
+          c.surveyNo.toLowerCase().includes(q) ||
+          c.ownerName.toLowerCase().includes(q) ||
+          c.district.toLowerCase().includes(q)
+      )
+      .slice(0, 4)
+      .map((c) => ({
+        key: `case-${c.id}`,
+        title: c.id,
+        meta: `${c.docType} · ${c.district}`,
+        status: c.status,
+        to: `/verification/${c.id}`,
+      }));
+    const records = getRecords()
+      .filter(
+        (r) =>
+          r.recordId.toLowerCase().includes(q) ||
+          r.surveyNo.toLowerCase().includes(q) ||
+          r.ownerName.toLowerCase().includes(q) ||
+          r.village.toLowerCase().includes(q)
+      )
+      .slice(0, 4)
+      .map((r) => ({
+        key: `rec-${r.recordId}`,
+        title: r.recordId,
+        meta: `Survey ${r.surveyNo} · ${r.village}`,
+        status: r.status,
+        to: `/land-records/${r.recordId}`,
+      }));
+    return [...cases, ...records];
+  }, [query]);
+
+  const notifications = getAuditLogs().slice(0, 4);
+
+  /* ── Dismiss popovers on outside click ──────────────────────── */
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+        setSearchOpen(true);
+      }
+      if (e.key === 'Escape') {
+        setSearchOpen(false);
+        setNotifOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -107,267 +152,272 @@ export default function PortalLayout() {
     navigate('/login');
   };
 
-  return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#0F1513] text-[#F3F4F1] font-sans">
-      {/* ═══════════════════════════════════════════
-          1. EXACTLY ONE PERSISTENT SIDEBAR (240px)
-          ═══════════════════════════════════════════ */}
-      <aside className="w-60 bg-[#0A0E0D] border-r border-white/[0.08] flex flex-col justify-between shrink-0 h-full z-20">
-        <div>
-          {/* Header Brand */}
-          <div className="p-5 border-b border-white/[0.06]">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-800/40 border border-emerald-500/30 flex items-center justify-center text-lg shadow-sm">
-                🏛️
-              </div>
-              <div>
-                <h1 className="text-base font-semibold text-white tracking-tight leading-none">BhuSatya</h1>
-                <p className="text-[11px] text-[#94A39B] font-medium tracking-wide mt-1">
-                  Land Record Verification
-                </p>
-              </div>
-            </div>
-          </div>
+  const goTo = (to: string) => {
+    setQuery('');
+    setSearchOpen(false);
+    setNotifOpen(false);
+    navigate(to);
+  };
 
-          {/* Navigation Links */}
-          <nav className="p-3 space-y-1">
-            {navItems.map((item) => {
-              const isActive =
-                item.to === '/dashboard'
-                  ? location.pathname === '/dashboard'
-                  : location.pathname.startsWith(item.to);
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 ${
-                    isActive
-                      ? 'bg-[#161E1B] text-white border border-emerald-500/30 font-semibold'
-                      : 'text-[#94A39B] hover:text-white hover:bg-white/[0.03]'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={isActive ? 'text-emerald-400' : 'text-[#64756D]'}>
-                      {item.icon}
-                    </span>
-                    <span>{item.label}</span>
-                  </div>
-                  {item.badge && (
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/20">
-                      {item.badge}
-                    </span>
-                  )}
-                </NavLink>
-              );
-            })}
-          </nav>
+  /* ── Breadcrumb ─────────────────────────────────────────────── */
+  const segments = location.pathname.split('/').filter(Boolean);
+  const crumbs = segments.map((seg, i) =>
+    i === 0 ? CRUMBS[seg] ?? seg : decodeURIComponent(seg)
+  );
+
+  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `flex items-center gap-2.5 h-9 px-3 rounded-ctl text-[13px] transition-colors ${
+      isActive
+        ? 'bg-raised text-ink font-medium'
+        : 'text-ink-2 hover:text-ink hover:bg-white/[0.04]'
+    }`;
+
+  return (
+    <div className="flex h-screen w-full overflow-hidden bg-page">
+      {/* ══ Sidebar ══════════════════════════════════════════════ */}
+      <aside className="flex w-[248px] shrink-0 flex-col border-r border-line bg-sidebar">
+        {/* Brand */}
+        <div className="px-5 pt-6 pb-5">
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard')}
+            className="text-left"
+          >
+            <p className="text-[16.5px] font-semibold text-ink tracking-[-0.01em] leading-none">
+              BhuSatya
+            </p>
+            <p className="mt-1.5 text-[11.5px] text-ink-3">Land Record Verification</p>
+          </button>
         </div>
 
-        {/* Bottom Officer Profile & Actions */}
-        <div className="p-4 border-t border-white/[0.06] bg-[#070A09]">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-[#1E2824] border border-white/10 flex items-center justify-center text-white font-semibold text-xs shrink-0">
-              {userName.substring(0, 2).toUpperCase()}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-slate-200 truncate leading-tight">
-                {userName.replace('(SSO Verified)', '')}
-              </p>
-              <p className="text-[11px] text-[#94A39B] truncate mt-0.5">
-                {userRole.replace(/_/g, ' ')}
-              </p>
-            </div>
+        {/* Search */}
+        <div className="px-4 pb-4" ref={searchRef}>
+          <div className="relative">
+            <Search
+              size={14}
+              strokeWidth={2}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-3"
+            />
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setSearchOpen(true);
+              }}
+              onFocus={() => setSearchOpen(true)}
+              placeholder="Search cases, records"
+              className="w-full h-9 rounded-ctl border border-line bg-panel pl-[34px] pr-3 text-[12.5px] text-ink placeholder:text-ink-3 focus:outline-none focus:border-line-strong"
+            />
+
+            {searchOpen && query.trim().length >= 2 && (
+              <div className="absolute left-0 right-0 top-11 z-40 rounded-card border border-line bg-panel py-1.5 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.85)]">
+                {results.length === 0 ? (
+                  <p className="px-3 py-3 text-[12.5px] text-ink-3">No matches found.</p>
+                ) : (
+                  results.map((r) => (
+                    <button
+                      key={r.key}
+                      type="button"
+                      onClick={() => goTo(r.to)}
+                      className="w-full px-3 py-2 text-left hover:bg-white/[0.04] transition-colors"
+                    >
+                      <span className="tnum block text-[12.5px] text-ink">{r.title}</span>
+                      <span className="block text-[11.5px] text-ink-3 truncate">{r.meta}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto scrollbar-slim px-4 pb-4">
+          <div className="space-y-0.5">
+            {WORK.map(({ label, to, icon: Icon }) => (
+              <NavLink key={to} to={to} className={navLinkClass}>
+                <Icon size={15.5} strokeWidth={1.9} className="shrink-0" />
+                {label}
+              </NavLink>
+            ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-1">
-            <button
-              onClick={() => setShowHelpModal(true)}
-              className="py-1.5 px-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-[#94A39B] hover:text-white text-xs font-medium transition-colors border border-white/[0.06] flex items-center justify-center gap-1.5"
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
-              <span>Help</span>
-            </button>
+          <p className="px-3 pt-6 pb-2 text-[10.5px] font-medium tracking-[0.09em] text-ink-3">
+            MANAGEMENT
+          </p>
+          <div className="space-y-0.5">
+            {MANAGEMENT.map(({ label, to, icon: Icon }) => (
+              <NavLink key={to} to={to} className={navLinkClass}>
+                <Icon size={15.5} strokeWidth={1.9} className="shrink-0" />
+                {label}
+              </NavLink>
+            ))}
+          </div>
+        </nav>
 
+        {/* Officer */}
+        <div className="border-t border-line px-4 py-4">
+          <div className="flex items-center gap-2.5">
+            <span className="grid place-items-center h-8 w-8 shrink-0 rounded-full bg-raised text-[11.5px] font-semibold text-ink-2">
+              {initialsOf(officerName)}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[12.5px] font-medium text-ink">
+                {officerName.replace(/^Officer\s+/i, '')}
+              </p>
+              <p className="truncate text-[11px] text-ink-3">{officerRole}</p>
+            </div>
             <button
+              type="button"
               onClick={handleLogout}
-              className="py-1.5 px-2 rounded-lg bg-white/[0.04] hover:bg-rose-500/15 text-[#94A39B] hover:text-rose-300 text-xs font-medium transition-colors border border-white/[0.06] hover:border-rose-500/30 flex items-center justify-center gap-1.5"
+              title="Log out"
+              aria-label="Log out"
+              className="grid place-items-center h-8 w-8 shrink-0 rounded-ctl text-ink-3 hover:text-ink hover:bg-white/5 transition-colors"
             >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-              <span>Logout</span>
+              <LogOut size={15} strokeWidth={1.9} />
             </button>
           </div>
         </div>
       </aside>
 
-      {/* ═══════════════════════════════════════════
-          2. MAIN APPLICATION CONTENT AREA
-          ═══════════════════════════════════════════ */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#0F1513]">
-        {/* Clean Top Bar */}
-        <header className="h-16 border-b border-white/[0.08] bg-[#0A0E0D] px-8 flex items-center justify-between gap-6 shrink-0 z-10">
-          {/* Universal Search Bar */}
-          <div className="flex-1 max-w-xl">
-            <div className="relative flex items-center">
-              <svg
-                className="w-4 h-4 absolute left-3.5 text-[#64756D] pointer-events-none"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search Case ID, Survey No., Owner, Village or Document"
-                className="w-full h-10 pl-10 pr-10 rounded-xl bg-[#161E1B] border border-white/[0.08] text-sm text-[#F3F4F1] placeholder-[#64756D] focus:outline-none focus:border-emerald-500/40 transition-colors"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 text-[#64756D] hover:text-white text-xs"
+      {/* ══ Main column ══════════════════════════════════════════ */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Top bar */}
+        <header className="flex h-15 shrink-0 items-center justify-between gap-4 border-b border-line bg-page px-6">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 min-w-0 text-[13px]">
+            <span className="text-ink-3">BhuSatya</span>
+            {crumbs.map((c, i) => (
+              <span key={i} className="flex items-center gap-1.5 min-w-0">
+                <span className="text-ink-3/60">/</span>
+                <span
+                  className={`truncate ${
+                    i === crumbs.length - 1 ? 'text-ink font-medium' : 'text-ink-3'
+                  }`}
                 >
-                  ✕
-                </button>
-              )}
-            </div>
-          </div>
+                  {c}
+                </span>
+              </span>
+            ))}
+          </nav>
 
-          {/* Right Header Actions */}
-          <div className="flex items-center gap-4">
-            {/* Upload Document Primary CTA */}
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
-              onClick={() => navigate('/upload')}
-              className="flex items-center gap-2 py-2 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-medium text-xs transition-colors shadow-sm"
+              type="button"
+              onClick={() => setHelpOpen(true)}
+              title="Help"
+              aria-label="Help"
+              className="grid place-items-center h-9 w-9 rounded-ctl text-ink-3 hover:text-ink hover:bg-white/5 transition-colors"
             >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              <span className="hidden sm:inline">Upload Document</span>
+              <HelpCircle size={16.5} strokeWidth={1.9} />
             </button>
 
-            {/* Notification Icon */}
-            <div className="relative">
+            <div className="relative" ref={notifRef}>
               <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="w-10 h-10 rounded-xl bg-[#161E1B] border border-white/[0.08] hover:border-white/20 flex items-center justify-center text-[#94A39B] hover:text-white transition-colors relative"
+                type="button"
+                onClick={() => setNotifOpen((v) => !v)}
+                title="Notifications"
                 aria-label="Notifications"
+                className="grid place-items-center h-9 w-9 rounded-ctl text-ink-3 hover:text-ink hover:bg-white/5 transition-colors"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                </svg>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 absolute top-2.5 right-2.5" />
+                <Bell size={16.5} strokeWidth={1.9} />
               </button>
-
-              {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-[#161E1B] border border-white/[0.12] p-4 shadow-xl z-50">
-                  <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] mb-3">
-                    <span className="text-xs font-semibold text-white">Notifications</span>
-                    <span className="text-[11px] text-emerald-400">2 Pending</span>
+              {notifOpen && (
+                <div className="absolute right-0 top-11 z-40 w-[330px] rounded-card border border-line bg-panel shadow-[0_16px_40px_-16px_rgba(0,0,0,0.85)]">
+                  <p className="border-b border-line px-4 py-3 text-[13px] font-medium text-ink">
+                    Recent activity
+                  </p>
+                  <div className="max-h-[300px] overflow-y-auto scrollbar-slim">
+                    {notifications.map((n) => (
+                      <button
+                        key={n.id}
+                        type="button"
+                        onClick={() => goTo(`/verification/${n.caseOrRecord}`)}
+                        className="w-full border-b border-line/70 px-4 py-3 text-left last:border-0 hover:bg-white/[0.03] transition-colors"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="tnum text-[12.5px] text-ink">{n.caseOrRecord}</span>
+                          <StatusBadge status={n.status} />
+                        </div>
+                        <p className="mt-1 text-[12px] text-ink-2 line-clamp-2">{n.action}</p>
+                        <p className="mt-1 text-[11px] text-ink-3">{n.timestamp}</p>
+                      </button>
+                    ))}
                   </div>
-                  <div className="space-y-2.5">
-                    <div
-                      onClick={() => {
-                        setShowNotifications(false);
-                        navigate('/verification/BLR-2026-8819');
-                      }}
-                      className="p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] cursor-pointer transition-colors"
-                    >
-                      <p className="text-xs font-medium text-slate-200">Sale Deed Ready for Review</p>
-                      <p className="text-[11px] text-[#94A39B] mt-0.5">Case #BLR-2026-8819 · Devanahalli</p>
-                    </div>
-                    <div
-                      onClick={() => {
-                        setShowNotifications(false);
-                        navigate('/verification/MYS-2026-4412');
-                      }}
-                      className="p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] cursor-pointer transition-colors"
-                    >
-                      <p className="text-xs font-medium text-amber-300">Variance in Mutation Record</p>
-                      <p className="text-[11px] text-[#94A39B] mt-0.5">Case #MYS-2026-4412 · Hunsur Taluk</p>
-                    </div>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => goTo('/audit-trail')}
+                    className="w-full border-t border-line px-4 py-3 text-left text-[12.5px] font-medium text-ink-2 hover:text-ink transition-colors"
+                  >
+                    View full audit trail
+                  </button>
                 </div>
               )}
             </div>
 
-            {/* Officer Profile Avatar */}
-            <div className="flex items-center gap-3 pl-2 border-l border-white/[0.08]">
-              <div className="w-9 h-9 rounded-xl bg-[#1E2824] border border-emerald-500/30 flex items-center justify-center text-emerald-300 font-semibold text-xs">
-                {userName.substring(0, 2).toUpperCase()}
-              </div>
-              <div className="hidden lg:block">
-                <p className="text-xs font-medium text-white leading-tight">{userName}</p>
-                <p className="text-[10px] text-[#94A39B]">Government Revenue Desk</p>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/settings')}
+              title={officerName}
+              className="grid place-items-center h-8 w-8 rounded-full bg-raised text-[11.5px] font-semibold text-ink-2 hover:text-ink transition-colors"
+            >
+              {initialsOf(officerName)}
+            </button>
+
+            <Button
+              variant="primary"
+              size="sm"
+              className="ml-2"
+              icon={<Upload size={14} strokeWidth={2} />}
+              onClick={() => navigate('/upload')}
+            >
+              Upload Document
+            </Button>
           </div>
         </header>
 
-        {/* Dynamic Outlet Canvas with comfortable padding */}
-        <main className="flex-1 overflow-y-auto px-8 py-7">
-          <div className="max-w-7xl mx-auto">
-            <Outlet context={{ searchQuery }} />
+        {/* Page body */}
+        <main className="flex-1 overflow-y-auto scrollbar-slim">
+          <div className="mx-auto w-full max-w-[1360px] px-6 py-6 lg:px-8 lg:py-7">
+            <Outlet />
           </div>
         </main>
       </div>
 
-      {/* Help Modal */}
-      {showHelpModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#161E1B] border border-white/[0.12] rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-              <div className="flex items-center gap-2.5">
-                <span className="text-xl">🏛️</span>
-                <h3 className="text-base font-semibold text-white">BhuSatya Officer Guidance</h3>
+      <Modal
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        title="How verification works"
+        subtitle="Four steps from scanned document to an updated land record."
+        width={520}
+        footer={
+          <Button variant="secondary" size="sm" onClick={() => setHelpOpen(false)}>
+            Close
+          </Button>
+        }
+      >
+        <ol className="space-y-3.5">
+          {[
+            ['Upload the document', 'Add the scan and its district, taluk, village and survey number.'],
+            ['Review the analysis', 'Detected text, tables, signatures and stamps are highlighted on the page.'],
+            ['Record your decision', 'Approve, send for manual review, or reject with a note.'],
+            ['Land record updates', 'Approved cases update the record and are written to the audit trail.'],
+          ].map(([title, body], i) => (
+            <li key={title} className="flex gap-3">
+              <span className="tnum grid h-6 w-6 shrink-0 place-items-center rounded-full bg-raised text-[12px] font-medium text-ink-2">
+                {i + 1}
+              </span>
+              <div>
+                <p className="text-[13px] font-medium text-ink">{title}</p>
+                <p className="mt-0.5 text-[12.5px] text-ink-3">{body}</p>
               </div>
-              <button
-                onClick={() => setShowHelpModal(false)}
-                className="text-[#94A39B] hover:text-white text-sm"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="space-y-3 text-xs text-[#94A39B] leading-relaxed">
-              <p>
-                <strong className="text-white">Primary Verification Workflow:</strong>
-                <br />
-                1. <strong>Upload Document:</strong> Ingest scanned deeds (PDF, PNG, TIFF) and enter village/survey coordinates.
-                <br />
-                2. <strong>AI Element Detection:</strong> Automated identification of text, tables, stamps, and signatures.
-                <br />
-                3. <strong>Officer Adjudication:</strong> The authorized officer reviews evidentiary detections and grants legal sign-off.
-              </p>
-              <p>
-                <strong className="text-white">Department Helpdesk:</strong>
-                <br />
-                Email: support@bhusatya.gov.in · Toll Free: 1800-425-BHUMI
-              </p>
-            </div>
-            <div className="pt-2 flex justify-end">
-              <button
-                onClick={() => setShowHelpModal(false)}
-                className="py-2 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-medium transition-colors"
-              >
-                Understood
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </li>
+          ))}
+        </ol>
+        <p className="mt-5 border-t border-line pt-4 text-[12.5px] text-ink-3">
+          For access or account issues, contact the district administrator.
+        </p>
+      </Modal>
     </div>
   );
 }
