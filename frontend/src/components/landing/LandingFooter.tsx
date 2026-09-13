@@ -11,7 +11,11 @@ export default function LandingFooter() {
           {/* Brand info */}
           <div className="landing-footer__brand-col">
             <div className="landing-footer__logo">
-              <span className="text-xl">🏛️</span>
+              <img
+                src="/bhusatya-mark.png"
+                alt="BhuSatya"
+                className="w-7 h-7 object-contain shrink-0 drop-shadow-sm"
+              />
               <span>BhuSatya</span>
             </div>
             <p className="landing-footer__tagline">

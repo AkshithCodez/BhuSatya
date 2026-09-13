@@ -44,8 +44,10 @@ const TOTALS = DISTRICTS.reduce(
   { digitized: 0, verified: 0, pending: 0, flagged: 0 }
 );
 
+type Range = 'monthly' | 'quarterly';
+
 export default function ReportsPage() {
-  const [range, setRange] = useState<'monthly' | 'quarterly'>('monthly');
+  const [range, setRange] = useState<Range>('monthly');
   const data = range === 'monthly' ? MONTHLY : QUARTERLY;
 
   return (
@@ -81,7 +83,7 @@ export default function ReportsPage() {
         title="Records Digitized"
         subtitle={range === 'monthly' ? 'Last six months' : 'Since the programme began'}
         actions={
-          <SegmentedControl
+          <SegmentedControl<Range>
             value={range}
             onChange={setRange}
             options={[

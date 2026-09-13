@@ -17,6 +17,7 @@ import {
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import { StatusBadge } from '../ui/Badge';
+import BhuSatyaLogo from '../branding/BhuSatyaLogo';
 import { getCases } from '../../data/mockCases';
 import { getRecords } from '../../data/mockRecords';
 import { getAuditLogs } from '../../data/mockAuditLogs';
@@ -177,16 +178,19 @@ export default function PortalLayout() {
       {/* ══ Sidebar ══════════════════════════════════════════════ */}
       <aside className="flex w-[248px] shrink-0 flex-col border-r border-line bg-sidebar">
         {/* Brand */}
-        <div className="px-5 pt-6 pb-5">
+        <div className="px-5 pt-5 pb-4">
           <button
             type="button"
             onClick={() => navigate('/dashboard')}
-            className="text-left"
+            className="flex items-center gap-3 text-left group transition-opacity hover:opacity-90"
           >
-            <p className="text-[16.5px] font-semibold text-ink tracking-[-0.01em] leading-none">
-              BhuSatya
-            </p>
-            <p className="mt-1.5 text-[11.5px] text-ink-3">Land Record Verification</p>
+            <BhuSatyaLogo variant="mark" size="md" className="shrink-0 drop-shadow-sm" />
+            <div>
+              <p className="text-[16px] font-semibold text-ink tracking-[-0.01em] leading-none">
+                Bhu<span className="text-emerald-400">Satya</span>
+              </p>
+              <p className="mt-1 text-[11px] text-ink-3">Land Record Verification</p>
+            </div>
           </button>
         </div>
 

@@ -23,10 +23,12 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
         aria-modal="true"
         aria-labelledby="forgot-password-title"
       >
-        <div className="flex h-11 w-11 items-center justify-center rounded-ctl border border-accent-lo/40 bg-accent/12 text-accent-hi">
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          </svg>
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-raised shadow-inner">
+          <img
+            src="/bhusatya-mark.png"
+            alt="BhuSatya"
+            className="h-9 w-9 object-contain drop-shadow-sm"
+          />
         </div>
 
         <div>

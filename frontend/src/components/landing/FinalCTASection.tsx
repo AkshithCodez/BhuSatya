@@ -6,6 +6,13 @@ export default function FinalCTASection() {
   return (
     <section className="final-cta">
       <div className="final-cta__inner">
+        <div className="flex justify-center mb-3">
+          <img
+            src="/bhusatya-mark.png"
+            alt="BhuSatya"
+            className="w-10 h-10 object-contain drop-shadow-md opacity-90"
+          />
+        </div>
         <div className="final-cta__badge">Government-Ready Infrastructure</div>
         <h2 className="final-cta__heading">
           Modernize <strong>Land Record Verification</strong>

@@ -4,7 +4,14 @@ export default function AboutSection() {
       <div className="about__inner">
         {/* Header */}
         <div className="about__header">
-          <p className="about__eyebrow">About BhuSatya</p>
+          <div className="flex items-center justify-center gap-2.5 mb-3">
+            <img
+              src="/bhusatya-mark.png"
+              alt="BhuSatya"
+              className="w-7 h-7 object-contain drop-shadow-sm"
+            />
+            <p className="about__eyebrow" style={{ marginBottom: 0 }}>About BhuSatya</p>
+          </div>
           <h2 className="about__heading">
             Intelligent Land Record <strong>Digitization &amp; Validation</strong>
           </h2>

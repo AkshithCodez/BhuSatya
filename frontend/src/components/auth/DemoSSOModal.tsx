@@ -27,10 +27,12 @@ export default function DemoSSOModal({ isOpen, onClose }: DemoSSOModalProps) {
         aria-modal="true"
         aria-labelledby="sso-modal-title"
       >
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-ctl border border-accent-lo/40 bg-accent/12 text-accent-hi">
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
-            <path d="M3 21h18M4 21V10l8-6 8 6v11M9 21v-6h6v6" />
-          </svg>
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-line bg-raised shadow-inner">
+          <img
+            src="/bhusatya-mark.png"
+            alt="BhuSatya"
+            className="h-10 w-10 object-contain drop-shadow-sm"
+          />
         </div>
 
         <div>

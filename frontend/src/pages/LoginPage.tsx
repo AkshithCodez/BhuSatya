@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import ForgotPasswordModal from '../components/auth/ForgotPasswordModal';
 import DemoSSOModal from '../components/auth/DemoSSOModal';
+import BhuSatyaLogo from '../components/branding/BhuSatyaLogo';
 import heroNight from '../assets/bhusatya-hero-night.jpg';
 import './LoginPage.css';
 
@@ -89,8 +90,7 @@ export default function LoginPage() {
         {/* Left Side Content */}
         <div className="login-page__left">
           <Link to="/" className="login-page__logo">
-            <span className="text-2xl">🏛️</span>
-            <span className="login-page__logo-text">BhuSatya</span>
+            <BhuSatyaLogo variant="full" size="lg" theme="dark" className="drop-shadow-lg" />
           </Link>
 
           <h1 className="login-page__headline">
@@ -108,28 +108,43 @@ export default function LoginPage() {
           </p>
 
           <div className="login-page__features">
-            <div className="login-page__feature-item">
-              <span className="login-page__feature-dot" />
-              <span>Automated Text, Table, Stamp &amp; Signature Detection</span>
+            <div className="login-page__feature">
+              <span className="login-page__feature-icon">🔍</span>
+              <div>
+                <strong>Evidentiary Detection</strong>
+                <p>Isolate text, tables, stamps, and signatures with YOLOv8.</p>
+              </div>
             </div>
-            <div className="login-page__feature-item">
-              <span className="login-page__feature-dot" />
-              <span>Supervisory Officer-in-the-Loop Adjudication</span>
+
+            <div className="login-page__feature">
+              <span className="login-page__feature-icon">⚖️</span>
+              <div>
+                <strong>Legal Pre-check Engine</strong>
+                <p>10-rule cross-check against authoritative state RoR registers.</p>
+              </div>
             </div>
-            <div className="login-page__feature-item">
-              <span className="login-page__feature-dot" />
-              <span>State RoR &amp; Cadastral Archive Cross-Validation</span>
+
+            <div className="login-page__feature">
+              <span className="login-page__feature-icon">🛡️</span>
+              <div>
+                <strong>Human-in-the-Loop</strong>
+                <p>Final determination and certification remains with revenue officers.</p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right Side Translucent Glass Card */}
+        {/* Right Side: Glass Sign-in Card */}
         <div className="login-page__right">
           <div className="login-card">
+            {/* Card Header */}
             <div className="login-card__header">
-              <div className="login-card__badge">
-                <span className="login-card__badge-dot" />
-                <span>Government Portal</span>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="login-card__badge">
+                  <span className="login-card__badge-dot" />
+                  <span>Government Portal</span>
+                </div>
+                <BhuSatyaLogo variant="mark" size="sm" className="opacity-90 drop-shadow-sm" />
               </div>
               <h2 className="login-card__title">Officer Sign In</h2>
               <p className="login-card__subtitle">

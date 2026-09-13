@@ -19,20 +19,12 @@ export default function TopNavigation() {
         <div className="topnav__inner">
           {/* Logo */}
           <a href="/" className="topnav__logo" aria-label="BhuSatya Home">
-            <svg
-              className="topnav__logo-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              aria-hidden="true"
-            >
-              <path
-                d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <img
+              src="/bhusatya-mark.png"
+              alt=""
+              className="w-7 h-7 object-contain shrink-0 drop-shadow-sm"
+              loading="eager"
+            />
             <span className="topnav__logo-text">BhuSatya</span>
           </a>
 
