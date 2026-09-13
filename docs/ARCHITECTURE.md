@@ -74,12 +74,19 @@
 
 ---
 
-## 3. UI Component Mapping
+## 3. UI Component Mapping (Current Architecture)
 
-- **`/` (Dashboard)**: `DashboardPage.tsx` — Metrics for uploaded, processed, high risk, and review queue.
-- **`/upload` (Upload)**: `UploadPage.tsx` — Drag-and-drop document upload supporting PDF and images.
-- **`/documents/:id` (Analysis)**: `DocumentAnalysisPage.tsx` — Interactive document viewer with YOLO bounding boxes, confidence slider, crop previews, and pipeline action buttons.
-- **`/review-queue` (Queue)**: `ReviewQueuePage.tsx` — Filterable verification priority queue by risk level.
-- **`/review/:id` (Workstation)**: `OfficerReviewPage.tsx` — Side-by-side human-in-the-loop review, validation findings, inline field editor with mandatory reasoning, and digital certification.
-- **`/parcels` (Land Records)**: `ParcelPage.tsx` — Cadastral survey SVG GIS map with WGS84 vertices, chronological mutation timeline, and ownership graph.
-- **`/audit` (Audit)**: `AuditPage.tsx` — Non-repudiable audit ledger with inspection modals and JSON export.
+- **`/` (Landing)**: [LandingPage.tsx](file:///c:/Users/reddy/Downloads/GoatFiles/project/SIH%202026/BhuSatya/BhuSatya/frontend/src/pages/LandingPage.tsx) — Dual-mode landing page (`Digitize` warm earthy theme ↔ `Verify` dark theme) with official BhuSatya branding and legal capability showcases.
+- **`/login` (Sign-in)**: [LoginPage.tsx](file:///c:/Users/reddy/Downloads/GoatFiles/project/SIH%202026/BhuSatya/BhuSatya/frontend/src/pages/LoginPage.tsx) — Translucent glass split-layout authentication with MeriPehchaan SSO modal, forgot password modal, and one-click role selector pills.
+- **`/dashboard` (Command Center)**: [OfficerDashboard.tsx](file:///c:/Users/reddy/Downloads/GoatFiles/project/SIH%202026/BhuSatya/BhuSatya/frontend/src/pages/OfficerDashboard.tsx) — Single 240px persistent sidebar, 4 summary stat cards, 4 feature shortcuts, and recent cases table.
+- **`/upload` (Ingestion)**: [UploadPage.tsx](file:///c:/Users/reddy/Downloads/GoatFiles/project/SIH%202026/BhuSatya/BhuSatya/frontend/src/pages/UploadPage.tsx) — Scanned land deed ingestion with drag-and-drop zone and cadastral metadata capture.
+- **`/processing` (Processing)**: [ProcessingPage.tsx](file:///c:/Users/reddy/Downloads/GoatFiles/project/SIH%202026/BhuSatya/BhuSatya/frontend/src/pages/ProcessingPage.tsx) — Minimal 7-step element isolation sequence routing automatically to `/analysis`.
+- **`/analysis` & `/analysis/:caseId` (Analysis)**: [DedicatedAnalysisPage.tsx](file:///c:/Users/reddy/Downloads/GoatFiles/project/SIH%202026/BhuSatya/BhuSatya/frontend/src/pages/DedicatedAnalysisPage.tsx) — 65/35 document inspector with clickable bounding box overlays (`TEXT`, `TABLE`, `STAMP`, `SIGNATURE`), zoom/pan controls, and quality assessment.
+- **`/verification` (Verification Queue)**: [VerificationCasesPage.tsx](file:///c:/Users/reddy/Downloads/GoatFiles/project/SIH%202026/BhuSatya/BhuSatya/frontend/src/pages/VerificationCasesPage.tsx) — Status-filtered verification queue with search, priority sorting, and quick navigation.
+- **`/verification/:caseId` (Adjudication Desk)**: [VerificationCaseDetailPage.tsx](file:///c:/Users/reddy/Downloads/GoatFiles/project/SIH%202026/BhuSatya/BhuSatya/frontend/src/pages/VerificationCaseDetailPage.tsx) — Side-by-side verification desk with document preview, AI evidentiary findings, officer decisions (`✓ Approve`, `Manual Review`, `Flag / Reject`), and confirmation modals with mandatory remark logging.
+- **`/land-records` (Cadastral Archive)**: [LandRecordsPage.tsx](file:///c:/Users/reddy/Downloads/GoatFiles/project/SIH%202026/BhuSatya/BhuSatya/frontend/src/pages/LandRecordsPage.tsx) — Filterable parcel archive with search across Survey No, Owner, Village, and Record Type.
+- **`/land-records/:recordId` (Parcel Detail)**: [LandRecordDetailPage.tsx](file:///c:/Users/reddy/Downloads/GoatFiles/project/SIH%202026/BhuSatya/BhuSatya/frontend/src/pages/LandRecordDetailPage.tsx) — Parcel detail view with Overview, Linked Documents, 3-tier vertical Ownership Succession Timeline (2026, 2023, 2018), and Physical Boundary Verification History.
+- **`/reports` (Reports & Analytics)**: [ReportsPage.tsx](file:///c:/Users/reddy/Downloads/GoatFiles/project/SIH%202026/BhuSatya/BhuSatya/frontend/src/pages/ReportsPage.tsx) — Executive throughput metrics and visual charts (Monthly/Quarterly).
+- **`/audit-trail` (Audit Ledger)**: [AuditTrailPage.tsx](file:///c:/Users/reddy/Downloads/GoatFiles/project/SIH%202026/BhuSatya/BhuSatya/frontend/src/pages/AuditTrailPage.tsx) — Immutable activity log table with search, category filtering, and JSON inspection.
+- **`/settings` (Preferences & Config)**: [SettingsPage.tsx](file:///c:/Users/reddy/Downloads/GoatFiles/project/SIH%202026/BhuSatya/BhuSatya/frontend/src/pages/SettingsPage.tsx) — Officer preferences, security settings, demo mode toggles, and system parameters.
+

@@ -109,6 +109,8 @@ frontend/src/
 │   ├── mockRecords.ts               <- Cadastral land records + timeline events
 │   └── mockAuditLogs.ts             <- Audit log entries + getAuditLogs()
 ├── components/
+│   ├── ui/                          <- Reusable design system (Badge, BarChart, Button, Field, KeyValue, Modal, PageHeader, Panel, SegmentedControl, StatCard, Table, Toggle, tone)
+│   ├── branding/                    <- Official BhuSatya brand logo & wordmark components
 │   ├── layout/
 │   │   └── PortalLayout.tsx         <- Single persistent 240px sidebar + top bar
 │   ├── auth/

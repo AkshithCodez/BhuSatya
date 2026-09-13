@@ -86,6 +86,8 @@ BhuSatya/
     │   │   ├── mockRecords.ts          <- Cadastral records + ownership history timeline
     │   │   └── mockAuditLogs.ts        <- Audit log entries
     │   ├── components/
+    │   │   ├── ui/                     <- Unified design system (Badge, BarChart, Button, Field, KeyValue, Modal, PageHeader, Panel, SegmentedControl, StatCard, Table, Toggle, tone)
+    │   │   ├── branding/               <- Official BhuSatya brand logo & wordmark components
     │   │   ├── layout/PortalLayout.tsx <- Single persistent 240px sidebar + topbar
     │   │   ├── auth/                   <- ForgotPasswordModal, DemoSSOModal
     │   │   └── landing/                <- Hero, ModeSwitcher, HowItWorks, Capabilities, About, Footer
