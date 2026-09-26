@@ -10,6 +10,7 @@ from app.services.table_extraction.base import TableTextExtractor
 from app.services.table_extraction.mock import MockTableTextExtractor
 from app.services.table_extraction.manual import ManualTableTextExtractor
 from app.services.table_extraction.optional_ocr import OptionalOCRTableTextExtractor
+from app.services.table_extraction.paddle_ocr import PaddleOCRTableTextExtractor
 
 
 def create_table_extractor(provider: str) -> TableTextExtractor:
@@ -17,7 +18,7 @@ def create_table_extractor(provider: str) -> TableTextExtractor:
     Create a table text extractor based on the provider name.
 
     Args:
-        provider: One of 'mock', 'manual', 'ocr', 'custom'
+        provider: One of 'mock', 'manual', 'ocr', 'paddle_ocr', 'custom'
 
     Returns:
         A TableTextExtractor instance.
@@ -26,6 +27,8 @@ def create_table_extractor(provider: str) -> TableTextExtractor:
         "mock": MockTableTextExtractor,
         "manual": ManualTableTextExtractor,
         "ocr": OptionalOCRTableTextExtractor,
+        "paddle_ocr": PaddleOCRTableTextExtractor,
+        "paddleocr": PaddleOCRTableTextExtractor,
     }
 
     if provider not in providers:
