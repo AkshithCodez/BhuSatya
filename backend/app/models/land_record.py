@@ -14,14 +14,19 @@ class Parcel(Base):
     village = Column(String, nullable=False)
     khata_number = Column(String)
     khasra_number = Column(String, nullable=False, index=True)
+    parcel_number = Column(String)  # Alias for khasra/survey number
+
     area = Column(Float)
+    recorded_area = Column(Float)
     area_unit = Column(String, default="acre")
     land_classification = Column(String)
+
     gis_area = Column(Float)
     gis_area_unit = Column(String, default="acre")
-    # GIS polygon as JSON string for prototype
-    gis_polygon = Column(Text)
+    gis_polygon = Column(Text)  # GeoJSON string for prototype
+
     created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
 
 class Person(Base):
@@ -32,6 +37,7 @@ class Person(Base):
     father_name = Column(String)
     address = Column(String)
     created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
 
 class ParcelRight(Base):

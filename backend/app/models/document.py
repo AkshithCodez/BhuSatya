@@ -10,17 +10,29 @@ class Document(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     filename = Column(String, nullable=False)
+    stored_filename = Column(String)
     original_filename = Column(String, nullable=False)
-    file_path = Column(String, nullable=False)
+    mime_type = Column(String)
     file_type = Column(String, nullable=False)  # image/png, image/jpeg, application/pdf
+    file_path = Column(String, nullable=False)
+    file_hash = Column(String)
     file_size = Column(Integer)
-    status = Column(String, nullable=False, default="UPLOADED")
-    # Statuses: UPLOADED, DETECTING_LAYOUT, LAYOUT_DETECTED, WAITING_FOR_TEXT_EXTRACTION,
-    #           TEXT_EXTRACTED, STRUCTURED, VALIDATING, REVIEW_REQUIRED, READY_FOR_APPROVAL,
-    #           VERIFIED, REJECTED, INVESTIGATION_REQUIRED
+
+    state = Column(String)
+    district = Column(String)
+    tehsil = Column(String)
     village = Column(String)
     khasra_number = Column(String)
+
+    status = Column(String, nullable=False, default="UPLOADED")
+    # Statuses: UPLOADED, DETECTING_LAYOUT, LAYOUT_DETECTED, TEXT_EXTRACTION_PENDING,
+    #           TEXT_EXTRACTED, STRUCTURED, VALIDATING, REVIEW_REQUIRED, READY_FOR_APPROVAL,
+    #           VERIFIED, REJECTED, INVESTIGATION_REQUIRED
     uploaded_by = Column(Integer, ForeignKey("users.id"))
+    uploaded_at = Column(DateTime, server_default=func.now())
+    processing_started_at = Column(DateTime)
+    processing_completed_at = Column(DateTime)
+
     risk_score = Column(Float)
     risk_level = Column(String)  # LOW, MODERATE, HIGH, CRITICAL
     created_at = Column(DateTime, server_default=func.now())

@@ -35,21 +35,45 @@ def seed_database(db: Session):
     # ── Users ──
     users = [
         User(
+            email="officer@bhusatya.gov.in",
+            hashed_password=_hash_password("BhuSatya@123"),
+            full_name="Dr. Rajesh Sharma",
+            name="Dr. Rajesh Sharma",
+            role="VERIFICATION_OFFICER",
+        ),
+        User(
+            email="operator@bhusatya.gov.in",
+            hashed_password=_hash_password("BhuSatya@123"),
+            full_name="Anita Verma",
+            name="Anita Verma",
+            role="DATA_ENTRY_OPERATOR",
+        ),
+        User(
+            email="admin@bhusatya.gov.in",
+            hashed_password=_hash_password("BhuSatya@123"),
+            full_name="Sunil Gupta",
+            name="Sunil Gupta",
+            role="ADMINISTRATOR",
+        ),
+        User(
             email="officer@sih.demo",
             hashed_password=_hash_password("demo123"),
             full_name="Dr. Rajesh Sharma",
+            name="Dr. Rajesh Sharma",
             role="VERIFICATION_OFFICER",
         ),
         User(
             email="operator@sih.demo",
             hashed_password=_hash_password("demo123"),
             full_name="Anita Verma",
+            name="Anita Verma",
             role="DATA_ENTRY_OPERATOR",
         ),
         User(
             email="admin@sih.demo",
             hashed_password=_hash_password("demo123"),
             full_name="Sunil Gupta",
+            name="Sunil Gupta",
             role="ADMINISTRATOR",
         ),
     ]
@@ -281,3 +305,23 @@ def seed_database(db: Session):
 
     db.commit()
     logger.info("Database seeded successfully with 3 demo parcels.")
+
+
+def main():
+    """CLI entrypoint to seed database."""
+    from app.db.database import engine, Base, SessionLocal
+    import app.models  # noqa: F401
+
+    logging.basicConfig(level=logging.INFO)
+    logger.info("Creating tables if not present...")
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        seed_database(db)
+        print("Seed completed successfully.")
+    finally:
+        db.close()
+
+
+if __name__ == "__main__":
+    main()
