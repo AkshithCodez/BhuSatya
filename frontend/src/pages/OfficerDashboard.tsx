@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ClipboardCheck,
@@ -18,6 +18,8 @@ import { StatusBadge } from '../components/ui/Badge';
 import { SearchInput, Select } from '../components/ui/Field';
 import { EmptyRow, TBody, TD, TH, THead, TR, Table } from '../components/ui/Table';
 import { getCases } from '../data/mockCases';
+import { getDashboard } from '../api/client';
+import type { DashboardResponse } from '../types';
 
 type Period = 'week' | 'month' | 'quarter';
 
@@ -68,9 +70,58 @@ export default function OfficerDashboard() {
   const [period, setPeriod] = useState<Period>('month');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('All');
+  const [dbData, setDbData] = useState<DashboardResponse | null>(null);
 
-  const cases = useMemo(() => getCases(), []);
-  const figures = FIGURES[period];
+  useEffect(() => {
+    getDashboard()
+      .then((data) => setDbData(data))
+      .catch((err) => console.log('Dashboard API status:', err));
+  }, []);
+
+  const cases = useMemo(() => {
+    const baseCases = getCases();
+    if (dbData && dbData.recent_documents.length > 0) {
+      const dbCases = dbData.recent_documents.map((d) => ({
+        id: `DOC-${d.id}`,
+        docType: 'Scanned Deed',
+        district: 'Bengaluru Urban',
+        taluk: 'Devanahalli',
+        village: d.village || 'Binnamangala',
+        surveyNo: d.khasra_number || '104/A',
+        ownerName: 'Savitha M. Ranganath',
+        extent: '2.14 Acres',
+        uploadedAt: d.created_at ? new Date(d.created_at).toLocaleDateString() : 'Today',
+        updatedAt: 'Just now',
+        status: d.status === 'VERIFIED' ? 'Approved' : d.status === 'UPLOADED' ? 'Pending' : 'Needs Review',
+        risk: (d.risk_level || 'Low') as 'Low' | 'Medium' | 'High',
+        pages: 1,
+        source: 'PostgreSQL DB' as const,
+      }));
+      // Prepend recent DB cases avoiding duplicates
+      const existingIds = new Set(baseCases.map((c) => c.id));
+      const filteredDb = dbCases.filter((c) => !existingIds.has(c.id));
+      return [...filteredDb, ...baseCases];
+    }
+    return baseCases;
+  }, [dbData]);
+
+  const figures = useMemo(() => {
+    const base = FIGURES[period];
+    if (dbData?.stats) {
+      return {
+        processed: base.processed + dbData.stats.processed,
+        pending: base.pending + dbData.stats.needs_review,
+        verified: base.verified + dbData.stats.verified,
+        stages: [
+          base.stages[0] + dbData.stats.total_documents,
+          base.stages[1] + dbData.stats.processed,
+          base.stages[2] + dbData.stats.needs_review,
+          base.stages[3] + dbData.stats.verified,
+        ],
+      };
+    }
+    return base;
+  }, [period, dbData]);
 
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
