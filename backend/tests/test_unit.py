@@ -125,3 +125,69 @@ def test_risk_scoring_deterministic():
     assert score_high == 65.0
     assert level_high == "HIGH"
     assert "Manual review required" in get_risk_summary(score_high, level_high)
+
+
+def test_database_connection_and_session():
+    """Verify database session handling and transaction rollback."""
+    from app.db.database import SessionLocal, check_db_health
+    from app.models.user import User
+
+    assert check_db_health() is True
+
+    db = SessionLocal()
+    try:
+        # Verify query execution
+        count = db.query(User).count()
+        assert count >= 1
+
+        # Test rollback behavior
+        temp_user = User(email="temp_test@domain.com", full_name="Temp", hashed_password="pw", role="TEST")
+        db.add(temp_user)
+        db.rollback()
+        assert db.query(User).filter(User.email == "temp_test@domain.com").first() is None
+    finally:
+        db.close()
+
+
+def test_crop_generation_and_clamping(tmp_path):
+    """Verify crop_region safely clamps within image boundaries with padding."""
+    from PIL import Image
+    from app.services.preprocessing_service import crop_region
+
+    img_path = str(tmp_path / "test_doc.png")
+    crop_path = str(tmp_path / "crop.png")
+
+    img = Image.new("RGB", (200, 200), color="white")
+    img.save(img_path)
+
+    # Coordinates near boundary: padding should clamp to [0, 200]
+    w, h = crop_region(img_path, x1=2, y1=2, x2=50, y2=50, output_path=crop_path, padding=10)
+    assert w > 0 and h > 0
+
+    cropped_img = Image.open(crop_path)
+    assert cropped_img.width <= 200
+    assert cropped_img.height <= 200
+
+
+def test_yolo_output_mapping_and_bbox_serialization():
+    """Verify YOLO class mapping (0=table, 1=signature, 2=stamp) and coordinates."""
+    from app.services.layout_detection.detector import CLASS_NAMES
+    from app.schemas.detection import DetectionOut, BBox
+
+    assert CLASS_NAMES[0] == "table"
+    assert CLASS_NAMES[1] == "signature"
+    assert CLASS_NAMES[2] == "stamp"
+
+    det = DetectionOut(
+        id="det_01",
+        class_id=1,
+        class_name=CLASS_NAMES[1],
+        confidence=0.95,
+        bbox=BBox(x1=100.0, y1=200.0, x2=300.0, y2=400.0),
+        image_width=1000,
+        image_height=1200,
+    )
+    det_dict = det.model_dump()
+    assert det_dict["class_name"] == "signature"
+    assert det_dict["bbox"]["x1"] == 100.0
+    assert det_dict["bbox"]["y2"] == 400.0

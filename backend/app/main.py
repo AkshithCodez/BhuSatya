@@ -40,12 +40,12 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Application lifecycle — create tables and seed data on startup."""
     # Create directories
-    for dir_path in [settings.UPLOAD_DIR, settings.DOCUMENT_PAGES_DIR, settings.DETECTED_REGIONS_DIR]:
+    for dir_path in [settings.STORAGE_DIR, settings.UPLOAD_DIR, settings.DOCUMENT_PAGES_DIR, settings.DETECTED_REGIONS_DIR]:
         os.makedirs(dir_path, exist_ok=True)
 
     # Create tables
     Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created.")
+    logger.info("Database tables verified.")
 
     # Seed demo data
     db = SessionLocal()
@@ -56,10 +56,10 @@ async def lifespan(app: FastAPI):
 
     # Model status
     if settings.model_available:
-        logger.info(f"✅ Layout model available at {settings.LAYOUT_MODEL_PATH}")
+        logger.info(f"Layout model available at {settings.LAYOUT_MODEL_PATH}")
     else:
         logger.warning(
-            f"⚠ Layout model NOT found at {settings.LAYOUT_MODEL_PATH}. "
+            f"Layout model NOT found at {settings.LAYOUT_MODEL_PATH}. "
             f"{'Using mock detections (DEMO_MODE).' if settings.DEMO_MODE else 'Detection endpoints will return errors.'}"
         )
 
@@ -103,13 +103,18 @@ app.include_router(audit_router)
 app.include_router(dashboard_router)
 
 
+@app.get("/health")
 @app.get("/api/health")
 def health_check():
-    """API health check including model status."""
+    """API health check reporting backend, database, and layout model status."""
+    from app.db.database import check_db_health
+    db_healthy = check_db_health()
     return {
-        "status": "healthy",
+        "status": "healthy" if db_healthy else "degraded",
+        "backend": "ok",
+        "database": "ok" if db_healthy else "unavailable",
+        "layout_model": "available" if settings.model_available else "unavailable",
         "app": settings.APP_NAME,
-        "model_available": settings.model_available,
         "model_path": settings.LAYOUT_MODEL_PATH,
         "demo_mode": settings.DEMO_MODE,
         "table_text_provider": settings.TABLE_TEXT_PROVIDER,

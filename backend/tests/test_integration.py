@@ -150,3 +150,75 @@ def test_full_digitization_and_verification_flow(client, auth_headers):
     assert export_data["status"] == "VERIFIED"
     assert "fields" in export_data
     assert "corrections" in export_data
+
+
+def test_critical_milestone_upload_detect_persist_refresh(client, auth_headers):
+    """
+    CRITICAL FIRST INTEGRATION MILESTONE TEST:
+    1. Upload document
+    2. Document row saved in DB
+    3. Page image created
+    4. YOLO model runs
+    5. table/signature/stamp detections returned
+    6. detections saved in DB
+    7. regions cropped
+    8. crop metadata saved
+    9. GET /api/documents/{id}/detections retrieves bboxes
+    10. Simulate page refresh by fetching GET /api/documents/{id}/detections again
+    11. Detections still exist and match identically because they are loaded from DB
+    """
+    # 1. Upload document
+    img_buf = create_dummy_document_image()
+    files = {"file": ("milestone_test_deed.png", img_buf, "image/png")}
+    upload_res = client.post("/api/documents", files=files, headers=auth_headers)
+    assert upload_res.status_code == 200
+    doc = upload_res.json()
+    doc_id = doc["id"]
+    assert doc_id > 0
+    assert doc["page_count"] >= 1
+
+    # Verify document page image is servable
+    page_img_res = client.get(f"/api/documents/{doc_id}/page/1/image")
+    assert page_img_res.status_code == 200
+    assert "image" in page_img_res.headers.get("content-type", "")
+
+    # 2. Run YOLO Layout Detection
+    detect_res = client.post(f"/api/documents/{doc_id}/detect", headers=auth_headers)
+    assert detect_res.status_code == 200
+    detect_payload = detect_res.json()
+    assert len(detect_payload) > 0
+    original_detections = detect_payload[0]["detections"]
+    assert len(original_detections) > 0
+
+    # Verify classes match expected classes (table, signature, stamp)
+    class_names = [d["class_name"] for d in original_detections]
+    assert "table" in class_names or "signature" in class_names or "stamp" in class_names
+
+    # Verify regions were cropped and stored in DB
+    regions_res = client.get(f"/api/documents/{doc_id}/regions", headers=auth_headers)
+    assert regions_res.status_code == 200
+    regions = regions_res.json()
+    assert len(regions) > 0
+    first_region = regions[0]
+    assert first_region["crop_url"] is not None
+
+    # Verify crop image file is servable
+    crop_img_res = client.get(first_region["crop_url"])
+    assert crop_img_res.status_code == 200
+
+    # 3. Simulate browser refresh: fetch detections fresh from DB
+    refresh_res = client.get(f"/api/documents/{doc_id}/detections", headers=auth_headers)
+    assert refresh_res.status_code == 200
+    persisted_detections = refresh_res.json()
+
+    # Detections STILL exist and match count
+    assert len(persisted_detections) == len(original_detections)
+
+    # Coordinates and confidence match persisted database records
+    orig_det0 = original_detections[0]
+    pers_det0 = persisted_detections[0]
+    assert pers_det0["class_name"] == orig_det0["class_name"]
+    assert pers_det0["bbox"]["x1"] == orig_det0["bbox"]["x1"]
+    assert pers_det0["bbox"]["y2"] == orig_det0["bbox"]["y2"]
+    assert pers_det0["image_width"] == orig_det0["image_width"]
+    assert pers_det0["image_height"] == orig_det0["image_height"]

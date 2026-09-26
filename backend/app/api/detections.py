@@ -90,6 +90,7 @@ def detect_layout(document_id: int, db: Session = Depends(get_db)):
             # Save detection to DB
             db_det = Detection(
                 document_id=document_id,
+                document_page_id=page.id,
                 page_number=page.page_number,
                 detection_id=det.id,
                 class_id=det.class_id,
@@ -101,6 +102,8 @@ def detect_layout(document_id: int, db: Session = Depends(get_db)):
                 bbox_y2=det.bbox.y2,
                 image_width=det.image_width,
                 image_height=det.image_height,
+                model_name="YOLOv8n-layout",
+                model_version="v1.0",
             )
             db.add(db_det)
             db.flush()
@@ -120,7 +123,9 @@ def detect_layout(document_id: int, db: Session = Depends(get_db)):
                 region = ExtractedRegion(
                     detection_id=db_det.id,
                     document_id=document_id,
+                    document_page_id=page.id,
                     page_number=page.page_number,
+                    region_type=det.class_name,
                     class_name=det.class_name,
                     crop_path=crop_path,
                     crop_width=crop_w,

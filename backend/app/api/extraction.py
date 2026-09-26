@@ -41,9 +41,12 @@ def extract_table_text(
         raise HTTPException(status_code=500, detail=result.error)
 
     extraction = TableExtraction(
+        detected_region_id=region_id,
         region_id=region_id,
         document_id=region.document_id,
+        provider=settings.TABLE_TEXT_PROVIDER,
         raw_text=result.raw_text,
+        confidence=result.confidence,
         extraction_method=result.extraction_method,
     )
     db.add(extraction)
