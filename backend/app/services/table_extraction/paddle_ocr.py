@@ -37,6 +37,8 @@ class PaddleOCRTableTextExtractor(TableTextExtractor):
                     device="cpu",
                     lang="en",
                     use_textline_orientation=False,
+                    use_doc_orientation_classify=False,
+                    use_doc_unwarping=False,
                     text_det_limit_side_len=1280,
                     text_recognition_batch_size=6,
                 )

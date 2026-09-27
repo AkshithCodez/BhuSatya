@@ -7,8 +7,12 @@ from datetime import datetime
 class DashboardStats(BaseModel):
     total_documents: int = 0
     processed: int = 0
+    processing: int = 0
     needs_review: int = 0
+    review_required: int = 0
     verified: int = 0
+    rejected: int = 0
+    investigation_required: int = 0
     high_risk: int = 0
 
 

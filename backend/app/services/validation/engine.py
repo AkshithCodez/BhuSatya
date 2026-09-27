@@ -3,8 +3,10 @@ Validation engine — runs all validators and aggregates results.
 
 Each validator is independent. This engine orchestrates them.
 """
+from typing import Optional
 from sqlalchemy.orm import Session
 from app.services.validation.base import ValidationResultData
+from app.services.validation.reference_matcher import match_reference_parcel
 from app.services.validation.required_fields import RequiredFieldsValidator
 from app.services.validation.parcel_format import ParcelFormatValidator
 from app.services.validation.administrative_hierarchy import AdministrativeHierarchyValidator
@@ -18,7 +20,7 @@ from app.services.validation.cross_document_validator import CrossDocumentValida
 
 
 class ValidationEngine:
-    """Runs all validators in sequence and collects results."""
+    """Runs all validators in sequence and collects results with unified resolution context."""
 
     def __init__(self):
         self.validators = [
@@ -34,19 +36,30 @@ class ValidationEngine:
             CrossDocumentValidator(),
         ]
 
-    def validate(self, fields: dict, db: Session) -> list[ValidationResultData]:
-        """Run all validators against the extracted fields."""
+    def validate(self, fields: dict, db: Session, document_id: Optional[int] = None) -> list[ValidationResultData]:
+        """Run all validators against extracted fields using PostgreSQL reference data."""
+        # 1. Resolve reference parcel using cadastral matching logic
+        match_result = match_reference_parcel(fields, db)
+        context = {
+            "match_result": match_result,
+            "parcel": match_result.parcel,
+            "document_id": document_id,
+        }
+
         all_results = []
 
         for validator in self.validators:
             try:
-                results = validator.validate(fields, db)
+                results = validator.validate(fields, db, context=context)
                 all_results.extend(results)
             except Exception as e:
                 all_results.append(ValidationResultData(
                     rule=validator.__class__.__name__,
+                    rule_code="VALIDATOR_ERROR",
                     status="SKIP",
+                    severity="LOW",
                     message=f"Validator error: {str(e)}",
                 ))
 
         return all_results
+

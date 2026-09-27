@@ -32,6 +32,7 @@ class ExtractedField(Base):
     id = Column(Integer, primary_key=True, index=True)
     document_id = Column(Integer, ForeignKey("documents.id"), nullable=False)
     document_page_id = Column(Integer, ForeignKey("document_pages.id"), nullable=True)
+    source_region_id = Column(Integer, ForeignKey("detected_regions.id"), nullable=True)
     source_detection_id = Column(String)
     table_extraction_id = Column(Integer, ForeignKey("table_extractions.id"), nullable=True)
 

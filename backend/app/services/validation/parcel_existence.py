@@ -1,44 +1,71 @@
 """Parcel existence validator."""
+from typing import Optional
 from sqlalchemy.orm import Session
-from app.models.land_record import Parcel
-from app.services.validation.base import Validator, ValidationResultData, ValidationEvidence
+from app.services.validation.base import Validator, ValidationResultData
+from app.services.validation.reference_matcher import match_reference_parcel, MatchResult
 
 
 class ParcelExistenceValidator(Validator):
-    def validate(self, fields: dict, db: Session) -> list[ValidationResultData]:
-        results = []
-        khasra = fields.get("khasra_number", "")
-        village = fields.get("village", "")
-
-        if not khasra:
-            return results
-
-        query = db.query(Parcel).filter(Parcel.khasra_number == khasra)
-        if village:
-            query = query.filter(Parcel.village.ilike(f"%{village}%"))
-
-        parcel = query.first()
-
-        if parcel:
-            results.append(ValidationResultData(
-                rule="PARCEL_EXISTS",
-                status="PASS",
-                message=f"Parcel {khasra} exists in reference records",
-                evidence=[
-                    ValidationEvidence(
-                        source="Reference Database",
-                        value=f"Khasra {khasra}, Village {parcel.village}"
-                    )
-                ],
-            ))
+    def validate(self, fields: dict, db: Session, context: Optional[dict] = None) -> list[ValidationResultData]:
+        # Use pre-resolved match from context if available, otherwise match directly
+        match_result: MatchResult
+        if context and "match_result" in context:
+            match_result = context["match_result"]
         else:
+            match_result = match_reference_parcel(fields, db)
+            if context is not None:
+                context["match_result"] = match_result
+                context["parcel"] = match_result.parcel
+
+        results = []
+
+        if match_result.status == "MATCHED":
+            p = match_result.parcel
             results.append(ValidationResultData(
-                rule="PARCEL_EXISTS",
+                rule="Parcel Existence",
+                rule_code="PARCEL_EXISTS",
+                status="PASS",
+                severity="INFO",
+                message=match_result.message,
+                uploaded_value=match_result.uploaded_value,
+                reference_values={
+                    "parcel_id": p.id,
+                    "khasra_number": p.khasra_number,
+                    "village": p.village,
+                    "tehsil": p.tehsil,
+                    "district": p.district,
+                    "recorded_area": p.area,
+                    "area_unit": p.area_unit,
+                } if p else None,
+                evidence=match_result.evidence,
+                recommendation="Parcel verified in cadastral registry.",
+            ))
+        elif match_result.status == "MULTIPLE_REFERENCE_MATCHES":
+            results.append(ValidationResultData(
+                rule="Parcel Existence",
+                rule_code="MULTIPLE_REFERENCE_MATCHES",
+                status="AMBIGUOUS",
+                severity="CRITICAL",
+                message=match_result.message,
+                uploaded_value=match_result.uploaded_value,
+                reference_values={
+                    "candidate_parcel_ids": [cp.id for cp in match_result.candidate_parcels],
+                    "count": len(match_result.candidate_parcels),
+                },
+                evidence=match_result.evidence,
+                recommendation=match_result.recommendation or "Officer review required to disambiguate reference parcel.",
+            ))
+        else:  # PARCEL_NOT_FOUND
+            results.append(ValidationResultData(
+                rule="Parcel Existence",
+                rule_code="PARCEL_NOT_FOUND",
                 status="FAIL",
-                severity="HIGH",
-                message=f"Parcel {khasra} not found in reference records",
-                uploaded_value=khasra,
-                recommendation="Verify parcel number is correct or check alternate numbers",
+                severity="CRITICAL",
+                message=match_result.message,
+                uploaded_value=match_result.uploaded_value,
+                reference_values=None,
+                evidence=[],
+                recommendation=match_result.recommendation or "Verify parcel number or verify with sub-registrar office.",
             ))
 
         return results

@@ -70,7 +70,7 @@ def test_postgresql_schema_tables_exist(pg_session):
         "documents",
         "document_pages",
         "detections",
-        "extracted_regions",
+        "detected_regions",
         "table_extractions",
         "extracted_fields",
         "parcels",
@@ -205,8 +205,17 @@ def test_postgresql_full_persistence_lifecycle(pg_session):
     assert queried_doc is not None
     assert len(queried_doc.pages) == 1
     assert len(queried_doc.detections) == 1
-    assert len(queried_doc.extracted_fields) == 1
+    
+    persisted_fields = pg_session.query(ExtractedField).filter(ExtractedField.document_id == doc.id).all()
+    assert len(persisted_fields) == 1
+    assert persisted_fields[0].field_name == "khasra_number"
 
-    # Cleanup test row
+    # Cleanup test rows in topological order
+    pg_session.delete(field)
+    pg_session.delete(extraction)
+    pg_session.delete(region)
+    pg_session.delete(det)
+    pg_session.flush()
+    pg_session.delete(audit)
     pg_session.delete(doc)
     pg_session.commit()

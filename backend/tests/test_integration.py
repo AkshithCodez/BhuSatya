@@ -23,12 +23,26 @@ def auth_headers(client):
 
 
 def create_dummy_document_image():
-    """Create a small in-memory PNG image to simulate a scanned document."""
-    img = Image.new("RGB", (640, 480), color=(250, 250, 248))
+    """Create a realistic in-memory document image with land record table for real YOLO detection."""
+    from PIL import ImageDraw
+    img = Image.new("RGB", (800, 1000), color=(255, 255, 255))
+    draw = ImageDraw.Draw(img)
+    draw.text((50, 40), "GOVERNMENT LAND RECORD DEPARTMENT", fill=(0, 0, 0))
+    draw.text((50, 70), "RECORD OF RIGHTS (ROR) / KHATUNI", fill=(0, 0, 0))
+    draw.rectangle([50, 150, 750, 500], outline=(0, 0, 0), width=2)
+    draw.line([50, 200, 750, 200], fill=(0, 0, 0), width=2)
+    draw.line([50, 260, 750, 260], fill=(0, 0, 0), width=1)
+    draw.line([50, 320, 750, 320], fill=(0, 0, 0), width=1)
+    draw.text((70, 220), "Village: Rampur", fill=(0, 0, 0))
+    draw.text((70, 280), "Khata No: 42", fill=(0, 0, 0))
+    draw.text((70, 340), "Khasra No: 104/A", fill=(0, 0, 0))
+    draw.text((70, 400), "Holder Name: Rajesh Sharma", fill=(0, 0, 0))
+    draw.text((70, 460), "Area: 2.50 Acre", fill=(0, 0, 0))
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
     return buf
+
 
 
 def test_health_check(client):
@@ -136,7 +150,7 @@ def test_full_digitization_and_verification_flow(client, auth_headers):
 
     # 7. Approve Document
     appr_resp = client.post(f"/api/documents/{doc_id}/approve", headers=auth_headers)
-    assert appr_resp.status_code == 200
+    assert appr_resp.status_code == 200, f"Approve failed: {appr_resp.text}"
     appr_data = appr_resp.json()
     assert appr_data["verification_status"] == "VERIFIED"
 

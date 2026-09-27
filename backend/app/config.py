@@ -14,11 +14,22 @@ class Settings(BaseSettings):
     # Database — PostgreSQL default with psycopg 3
     DATABASE_URL: str = "postgresql+psycopg://bhusatya:password@localhost:5432/bhusatya"
 
-    # ML Model 1 - Layout Detection
-    LAYOUT_MODEL_PATH: str = "./ml_models/layout_detector.pt"
+    # ML Model 1 - Land Layout Detection (Model A)
+    LAND_LAYOUT_MODEL_PATH: str = "./ml_models/land_layout_detector.pt"
+    LAND_LAYOUT_CONFIDENCE: float = 0.35
+
+    # ML Model 2 - Document Elements: Table / Signature / Stamp (Model B)
+    DOCUMENT_ELEMENT_MODEL_PATH: str = "./ml_models/table_signature_stamp_detector.pt"
+    DOCUMENT_ELEMENT_CONFIDENCE: float = 0.35
+
+    # Fusion Settings
+    TABLE_DEDUP_IOU_THRESHOLD: float = 0.70
+
+    # Backwards compatibility aliases
+    LAYOUT_MODEL_PATH: str = "./ml_models/land_layout_detector.pt"
     LAYOUT_MODEL_CONFIDENCE: float = 0.35
 
-    # ML Model 2 - Table Text Extraction (paddle_ocr | manual | custom)
+    # ML Model 3 - Table Text Extraction (paddle_ocr | manual | custom)
     TABLE_TEXT_PROVIDER: str = "paddle_ocr"
 
     # File Storage
@@ -37,8 +48,16 @@ class Settings(BaseSettings):
     )
 
     @property
+    def land_layout_available(self) -> bool:
+        return Path(self.LAND_LAYOUT_MODEL_PATH).exists()
+
+    @property
+    def document_element_available(self) -> bool:
+        return Path(self.DOCUMENT_ELEMENT_MODEL_PATH).exists()
+
+    @property
     def model_available(self) -> bool:
-        return Path(self.LAYOUT_MODEL_PATH).exists()
+        return self.land_layout_available or self.document_element_available
 
 
 settings = Settings()

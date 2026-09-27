@@ -10,13 +10,16 @@ class EvidenceItem(BaseModel):
 
 class ValidationResultOut(BaseModel):
     id: Optional[int] = None
+    rule_code: str = "RULE_UNKNOWN"
     rule: str
-    status: str  # PASS, FAIL, WARN, INFO, SKIP
-    severity: Optional[str] = None
+    status: str  # PASS, WARNING, WARN, FAIL, SKIP, REFERENCE_DATA_NOT_FOUND, AMBIGUOUS
+    severity: Optional[str] = None  # INFO, LOW, MEDIUM, HIGH, CRITICAL
     message: str
     uploaded_value: Optional[str] = None
+    reference_values: Optional[dict] = None
     evidence: list[EvidenceItem] = []
     recommendation: Optional[str] = None
+    extracted_field_id: Optional[int] = None
 
     class Config:
         from_attributes = True

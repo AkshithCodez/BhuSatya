@@ -51,6 +51,10 @@ export interface Detection {
   bbox: BBox;
   image_width: number;
   image_height: number;
+  model_name?: string;
+  model_role?: string;
+  model_version?: string;
+  document_page_id?: number | null;
 }
 
 export interface DetectionResponse {
@@ -59,30 +63,45 @@ export interface DetectionResponse {
   model: string;
   confidence_threshold: number;
   detections: Detection[];
+  models_status?: Record<string, string>;
+  fused_regions?: Region[];
 }
 
 export interface Region {
   id: number;
-  detection_id: number;
+  detection_id: number | null;
   document_id: number;
   page_number: number;
   class_name: string;
+  source?: string;
+  supporting_detection_ids?: string | null;
+  region_type?: string;
+  x1?: number | null;
+  y1?: number | null;
+  x2?: number | null;
+  y2?: number | null;
+  image_width?: number | null;
+  image_height?: number | null;
   crop_path: string;
   crop_url: string;
   crop_width: number | null;
   crop_height: number | null;
 }
 
+
 export interface ExtractedField {
   id: number;
   document_id: number;
   field_name: string;
   value: string | null;
+  raw_value?: string | null;
   normalized_value: string | null;
   unit: string | null;
   confidence: number | null;
   source_page: number | null;
   source_detection_id: string | null;
+  source_region_id?: number | null;
+  table_extraction_id?: number | null;
   source_text: string | null;
   extraction_method: string | null;
   verification_status: string;
@@ -95,20 +114,55 @@ export interface EvidenceItem {
 
 export interface ValidationResult {
   id?: number;
+  document_id?: number;
+  extracted_field_id?: number | null;
   rule: string;
+  rule_code?: string | null;
   status: string;
   severity: string | null;
   message: string;
   uploaded_value: string | null;
+  reference_values?: Record<string, any> | null;
   evidence: EvidenceItem[];
   recommendation: string | null;
 }
 
 export interface ValidationResponse {
   document_id: number;
-  risk_score: number;
+  risk_score: number | null;
   risk_level: string;
   results: ValidationResult[];
+}
+
+export interface VerifiedRecordResponse {
+  document_id: number;
+  verification_status: string;
+  is_verified: boolean;
+  fields: Record<string, string | null>;
+  extracted_fields?: Array<{
+    field_id?: number;
+    field_name: string;
+    raw_value: string | null;
+    effective_value: string | null;
+    confidence?: number | null;
+    verification_status: string;
+  }>;
+  corrections?: Array<{
+    id?: number;
+    field_name: string;
+    previous_value: string | null;
+    new_value: string;
+    reason: string;
+    changed_by: string | null;
+    changed_at: string | null;
+  }>;
+  review?: {
+    reviewer_id: number | null;
+    reviewer_name: string;
+    decision: string;
+    notes: string | null;
+    reviewed_at: string | null;
+  } | null;
 }
 
 export interface DashboardStats {

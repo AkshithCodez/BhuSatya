@@ -49,6 +49,10 @@ async def lifespan(app: FastAPI):
         try:
             Base.metadata.create_all(bind=engine)
             logger.info("PostgreSQL database tables verified.")
+            from app.db.database import SessionLocal
+            from app.db.seed import seed_database
+            with SessionLocal() as db_session:
+                seed_database(db_session)
         except Exception as e:
             logger.error(f"Failed to initialize database tables: {e}")
     else:
@@ -57,14 +61,20 @@ async def lifespan(app: FastAPI):
             "PostgreSQL 16 is required. Database endpoints will return HTTP 503."
         )
 
-    # Layout model status
-    if settings.model_available:
-        logger.info(f"Layout model available at {settings.LAYOUT_MODEL_PATH}")
+    # Two-Model YOLO status
+    from app.services.layout_detection import get_land_layout_detector, get_document_element_detector
+    layout_det = get_land_layout_detector()
+    elem_det = get_document_element_detector()
+
+    if layout_det.is_available:
+        logger.info(f"Model A (Land Layout) available at {settings.LAND_LAYOUT_MODEL_PATH}")
     else:
-        logger.warning(
-            f"Layout model NOT found at {settings.LAYOUT_MODEL_PATH}. "
-            "Detection endpoints will report unavailable (HTTP 503)."
-        )
+        logger.warning(f"Model A (Land Layout) NOT found at {settings.LAND_LAYOUT_MODEL_PATH}")
+
+    if elem_det.is_available:
+        logger.info(f"Model B (Document Elements) available at {settings.DOCUMENT_ELEMENT_MODEL_PATH}")
+    else:
+        logger.warning(f"Model B (Document Elements) NOT found at {settings.DOCUMENT_ELEMENT_MODEL_PATH}")
 
     logger.info(f"Table text provider: {settings.TABLE_TEXT_PROVIDER}")
     logger.info(f"DEMO_MODE: {settings.DEMO_MODE}")
@@ -109,9 +119,19 @@ app.include_router(dashboard_router)
 @app.get("/health")
 @app.get("/api/health")
 def health_check():
-    """Truthful health check reflecting actual runtime dependencies without simulation."""
+    """Truthful health check reflecting actual runtime dependencies and both models without simulation."""
     from app.db.database import get_db_status
+    from app.services.layout_detection import get_land_layout_detector, get_document_element_detector
+
     db_status = get_db_status()
+    layout_det = get_land_layout_detector()
+    elem_det = get_document_element_detector()
+
+    layout_available = layout_det.is_available
+    elem_available = elem_det.is_available
+
+    layout_classes = list(layout_det.get_classes().values()) if layout_available else []
+    elem_classes = list(elem_det.get_classes().values()) if elem_available else []
 
     # Check PaddleOCR availability
     paddle_available = False
@@ -123,12 +143,12 @@ def health_check():
 
     overall_healthy = (
         db_status["status"] == "ok"
-        and settings.model_available
+        and (layout_available or elem_available)
         and (paddle_available or settings.TABLE_TEXT_PROVIDER == "manual")
     )
 
     response = {
-        "status": "healthy" if overall_healthy else "degraded",
+        "status": "ok" if overall_healthy else "degraded",
         "backend": {
             "status": "ok",
         },
@@ -136,22 +156,37 @@ def health_check():
             "status": db_status["status"],
             "engine": db_status["engine"],
         },
-        "layout_model": {
-            "status": "available" if settings.model_available else "unavailable",
-            "model": "layout_detector.pt",
-            "provider": "ultralytics",
+        "models": {
+            "land_layout_detector": {
+                "status": "available" if layout_available else "unavailable",
+                "classes": layout_classes,
+                "model_path": settings.LAND_LAYOUT_MODEL_PATH,
+            },
+            "table_signature_stamp_detector": {
+                "status": "available" if elem_available else "unavailable",
+                "classes": elem_classes,
+                "model_path": settings.DOCUMENT_ELEMENT_MODEL_PATH,
+            },
         },
         "table_text_provider": {
             "status": "available" if paddle_available else "unavailable",
             "provider": settings.TABLE_TEXT_PROVIDER,
         },
+        # Backwards compatibility alias
+        "layout_model": {
+            "status": "available" if (layout_available and elem_available) else ("partial" if (layout_available or elem_available) else "unavailable"),
+            "provider": "ultralytics",
+        },
     }
 
     if db_status["status"] != "ok":
         response["database"]["reason"] = db_status.get("reason", "Connection failed")
-    if not settings.model_available:
-        response["layout_model"]["reason"] = f"Weights not found at {settings.LAYOUT_MODEL_PATH}"
+    if not layout_available:
+        response["models"]["land_layout_detector"]["reason"] = f"Model A not found or failed to load at {settings.LAND_LAYOUT_MODEL_PATH}"
+    if not elem_available:
+        response["models"]["table_signature_stamp_detector"]["reason"] = f"Model B not found or failed to load at {settings.DOCUMENT_ELEMENT_MODEL_PATH}"
     if not paddle_available and settings.TABLE_TEXT_PROVIDER in ("paddle_ocr", "paddleocr"):
         response["table_text_provider"]["reason"] = "paddleocr package not installed in environment"
 
     return response
+

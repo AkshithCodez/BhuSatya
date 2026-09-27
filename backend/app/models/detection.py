@@ -26,6 +26,7 @@ class Detection(Base):
     image_height = Column(Integer, nullable=False)
 
     model_name = Column(String, default="YOLOv8n-layout")
+    model_role = Column(String(50), nullable=True)  # layout | document_elements | fusion
     model_version = Column(String, default="v1.0")
     raw_output = Column(Text)  # JSON raw predictions
 
@@ -39,13 +40,22 @@ class DetectedRegion(Base):
     __tablename__ = "detected_regions"
 
     id = Column(Integer, primary_key=True, index=True)
-    detection_id = Column(Integer, ForeignKey("detections.id"), nullable=False, unique=True)
+    detection_id = Column(Integer, ForeignKey("detections.id"), nullable=True, unique=True)
     document_id = Column(Integer, ForeignKey("documents.id"), nullable=False)
     document_page_id = Column(Integer, ForeignKey("document_pages.id"), nullable=True)
     page_number = Column(Integer, nullable=False)
 
     region_type = Column(String)  # table, signature, stamp
     class_name = Column(String, nullable=False)  # table, signature, stamp
+    source = Column(String, nullable=False, default="yolo")  # yolo, manual_selection, model_fusion, model_single
+    supporting_detection_ids = Column(String(255), nullable=True)
+    x1 = Column(Float, nullable=True)
+    y1 = Column(Float, nullable=True)
+    x2 = Column(Float, nullable=True)
+    y2 = Column(Float, nullable=True)
+    image_width = Column(Integer, nullable=True)
+    image_height = Column(Integer, nullable=True)
+
     crop_path = Column(String, nullable=False)
     crop_width = Column(Integer)
     crop_height = Column(Integer)

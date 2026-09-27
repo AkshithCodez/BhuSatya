@@ -34,9 +34,10 @@ FIELD_ALIASES = {
     "village": ["village", "gram", "gaon", "गाँव", "ग्राम"],
     "khata_number": ["khata no", "khata", "khata number", "खाता", "खाता नं"],
     "khasra_number": [
-        "khasra no", "khasra", "khasra number", "survey no", "survey number",
-        "parcel no", "parcel number", "खसरा", "खसरा नं",
+        "khasra no", "khasra", "khasra number", "खसरा", "खसरा नं",
     ],
+    "survey_number": ["survey no", "survey number", "survey", "सर्वे", "सर्वे नं"],
+    "parcel_number": ["parcel no", "parcel number", "parcel"],
     "holder_name": [
         "holder name", "holder", "owner", "owner name", "name",
         "right holder", "dharank", "धारक",
@@ -45,17 +46,22 @@ FIELD_ALIASES = {
         "father name", "father", "father's name", "s/o", "d/o", "w/o",
         "pita", "पिता",
     ],
+    "father_or_spouse_name": [
+        "father or spouse name", "father/spouse name", "father or spouse", "father/spouse",
+        "spouse name", "husband name", "पति", "पिता/पति",
+    ],
     "area": ["area", "kshetrafal", "क्षेत्रफल"],
+    "area_unit": ["area unit", "unit", "इकाई"],
     "mutation_number": [
         "mutation no", "mutation", "mutation number", "dakhil kharij",
         "दाखिल खारिज",
     ],
-    "mutation_date": ["mutation date", "dakhil date"],
+    "mutation_date": ["mutation date", "dakhil date", "mutation dt", "तारीख"],
     "registration_number": [
-        "registration no", "registration", "reg no", "registration number",
+        "registration no", "registration", "reg no", "registration number", "पंजीकरण",
     ],
     "land_classification": [
-        "land type", "land classification", "classification", "bhumi prakar",
+        "land type", "land classification", "classification", "bhumi prakar", "भूमि प्रकार",
     ],
     "share": ["share", "hissa", "हिस्सा"],
 }
@@ -125,6 +131,11 @@ def parse_fields(
         Khata No: 76
         Khasra No: 145/2
         Area: 3.82 Acre
+    And two-line table OCR outputs:
+        Khata No:
+        76
+        Khasra No:
+        145/2
     """
     result = ParseResult(raw_text=raw_text)
 
@@ -132,23 +143,56 @@ def parse_fields(
         result.errors.append("Empty text provided")
         return result
 
-    lines = raw_text.strip().split('\n')
+    raw_lines = [l.strip() for l in raw_text.strip().split('\n') if l.strip()]
+    i = 0
+    while i < len(raw_lines):
+        line = raw_lines[i]
 
-    for line in lines:
-        line = line.strip()
-        if not line:
+        raw_key = None
+        raw_value = None
+
+        # 1. Try single-line delimiter format: "Key: Value" or "Key - Value"
+        match = re.match(r'^(.+?)(?::\s*|[-—=]\s*|\s*\|\s*|\t+|\s{2,})(.+)$', line)
+        if match:
+            cand_key = match.group(1).strip()
+            cand_val = match.group(2).strip()
+            if _find_field_name(cand_key):
+                raw_key = cand_key
+                raw_value = cand_val
+
+        # 2. If no single-line match, check if line is a standalone field label
+        # e.g. "Village:", "Khata No:", "Holder Name:", "Area:"
+        if not raw_key:
+            field_cand = _find_field_name(line)
+            if field_cand and i + 1 < len(raw_lines):
+                next_line = raw_lines[i + 1]
+                # If next line is not another recognized field label, it is the value
+                if not _find_field_name(next_line):
+                    raw_key = line
+                    raw_value = next_line
+                    i += 1  # Consume next line as value
+
+        # 3. Check if line starts with known alias followed by value without delimiter
+        if not raw_key:
+            line_clean = line.strip()
+            for canonical, aliases in FIELD_ALIASES.items():
+                for alias in sorted(aliases, key=len, reverse=True):
+                    if line_clean.lower().startswith(alias.lower()):
+                        rem = line_clean[len(alias):].strip().lstrip(':-—=|').strip()
+                        if rem and not rem.lower().startswith("no:"):
+                            raw_key = alias
+                            raw_value = rem
+                            break
+                if raw_key:
+                    break
+
+        if not raw_key or not raw_value:
+            i += 1
             continue
-
-        # Try key: value format
-        match = re.match(r'^(.+?):\s*(.+)$', line)
-        if not match:
-            continue
-
-        raw_key = match.group(1).strip()
-        raw_value = match.group(2).strip()
 
         field_name = _find_field_name(raw_key)
         if not field_name:
+            i += 1
             continue
 
         normalized_value = _normalize_text(raw_value)
@@ -159,7 +203,7 @@ def parse_fields(
             normalized_value, unit = _parse_area(raw_value)
 
         # Special handling for names - title case
-        if field_name in ("holder_name", "father_name"):
+        if field_name in ("holder_name", "father_name", "father_or_spouse_name"):
             normalized_value = raw_value.strip().title()
 
         parsed = ParsedField(
@@ -167,13 +211,25 @@ def parse_fields(
             value=raw_value,
             normalized_value=normalized_value,
             unit=unit,
-            source_text=line,
+            source_text=f"{raw_key}: {raw_value}",
             confidence=source_confidence,
         )
-
         result.fields.append(parsed)
+
+        # If area has unit, also emit area_unit field
+        if field_name == "area" and unit:
+            result.fields.append(ParsedField(
+                field_name="area_unit",
+                value=unit,
+                normalized_value=unit,
+                source_text=f"{raw_key}: {raw_value}",
+                confidence=source_confidence,
+            ))
+
+        i += 1
 
     if not result.fields:
         result.errors.append("No recognized fields found in the text")
 
     return result
+

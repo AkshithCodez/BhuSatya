@@ -30,6 +30,13 @@ def extract_table_text(
     if region.class_name != "table":
         raise HTTPException(status_code=400, detail="Region is not a table")
 
+    log_audit_event(
+        db, "OCR_STARTED",
+        f"OCR processing started for table region {region_id} via {settings.TABLE_TEXT_PROVIDER}",
+        document_id=region.document_id,
+        details={"region_id": region_id, "provider": settings.TABLE_TEXT_PROVIDER},
+    )
+
     if manual_input and manual_input.text:
         result = TableExtractionResult(
             raw_text=manual_input.text,
@@ -63,6 +70,16 @@ def extract_table_text(
         db.commit()
 
     log_audit_event(
+        db, "OCR_COMPLETED",
+        f"Table OCR completed via {result.extraction_method} (Confidence: {f'{result.confidence:.1%}' if result.confidence is not None else 'N/A'})",
+        document_id=region.document_id,
+        details={
+            "extraction_id": extraction.id,
+            "confidence": result.confidence,
+            "method": result.extraction_method,
+        },
+    )
+    log_audit_event(
         db, "TEXT_EXTRACTED",
         f"Table text extracted via {result.extraction_method}",
         document_id=region.document_id,
@@ -95,6 +112,12 @@ def parse_document_fields(document_id: int, db: Session = Depends(get_db)):
             detail="No text extractions found. Extract table text first.",
         )
 
+    # Clear unverified fields for this document before reparsing
+    db.query(ExtractedField).filter(
+        ExtractedField.document_id == document_id,
+        ExtractedField.verification_status == "UNVERIFIED",
+    ).delete()
+
     all_fields = []
 
     for extraction in extractions:
@@ -104,16 +127,24 @@ def parse_document_fields(document_id: int, db: Session = Depends(get_db)):
             source_confidence=extraction.confidence,
         )
 
+        region = None
+        if extraction.detected_region_id:
+            region = db.query(ExtractedRegion).filter(ExtractedRegion.id == extraction.detected_region_id).first()
+
         for parsed in result.fields:
             field = ExtractedField(
                 document_id=document_id,
+                document_page_id=region.document_page_id if region else None,
+                source_region_id=extraction.detected_region_id,
+                source_detection_id=str(extraction.region_id) if extraction.region_id else None,
+                table_extraction_id=extraction.id,
                 field_name=parsed.field_name,
+                raw_value=parsed.value,
                 value=parsed.value,
                 normalized_value=parsed.normalized_value,
                 unit=parsed.unit,
                 confidence=parsed.confidence,
-                source_page=1,
-                source_detection_id=str(extraction.region_id),
+                source_page=region.page_number if region else 1,
                 source_text=parsed.source_text,
                 extraction_method=extraction.extraction_method,
                 verification_status="UNVERIFIED",
@@ -146,12 +177,15 @@ def parse_document_fields(document_id: int, db: Session = Depends(get_db)):
             id=f.id,
             document_id=f.document_id,
             field_name=f.field_name,
+            raw_value=f.raw_value,
             value=f.value,
             normalized_value=f.normalized_value,
             unit=f.unit,
             confidence=f.confidence,
             source_page=f.source_page,
+            source_region_id=f.source_region_id,
             source_detection_id=f.source_detection_id,
+            table_extraction_id=f.table_extraction_id,
             source_text=f.source_text,
             extraction_method=f.extraction_method,
             verification_status=f.verification_status,
@@ -165,18 +199,21 @@ def get_fields(document_id: int, db: Session = Depends(get_db)):
     """Get extracted fields for a document."""
     fields = db.query(ExtractedField).filter(
         ExtractedField.document_id == document_id
-    ).all()
+    ).order_by(ExtractedField.id).all()
     return [
         ExtractedFieldOut(
             id=f.id,
             document_id=f.document_id,
             field_name=f.field_name,
+            raw_value=f.raw_value,
             value=f.value,
             normalized_value=f.normalized_value,
             unit=f.unit,
             confidence=f.confidence,
             source_page=f.source_page,
+            source_region_id=f.source_region_id,
             source_detection_id=f.source_detection_id,
+            table_extraction_id=f.table_extraction_id,
             source_text=f.source_text,
             extraction_method=f.extraction_method,
             verification_status=f.verification_status,
