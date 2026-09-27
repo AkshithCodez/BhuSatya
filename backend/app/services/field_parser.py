@@ -15,7 +15,7 @@ class ParsedField:
     value: str
     normalized_value: Optional[str] = None
     unit: Optional[str] = None
-    confidence: float = 0.7
+    confidence: Optional[float] = None
     source_text: str = ""
 
 
@@ -113,7 +113,11 @@ def _parse_area(value: str) -> tuple[str, Optional[str]]:
     return numeric if numeric else value, None
 
 
-def parse_fields(raw_text: str, extraction_method: str = "unknown") -> ParseResult:
+def parse_fields(
+    raw_text: str,
+    extraction_method: str = "unknown",
+    source_confidence: Optional[float] = None,
+) -> ParseResult:
     """
     Parse raw text into structured land record fields.
 
@@ -164,7 +168,7 @@ def parse_fields(raw_text: str, extraction_method: str = "unknown") -> ParseResu
             normalized_value=normalized_value,
             unit=unit,
             source_text=line,
-            confidence=0.7 if extraction_method == "temporary_mock" else 0.85,
+            confidence=source_confidence,
         )
 
         result.fields.append(parsed)

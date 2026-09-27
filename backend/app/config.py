@@ -6,9 +6,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     # Application
     APP_NAME: str = "BhuSatya"
-    DEMO_MODE: bool = True
+    DEMO_MODE: bool = False
     SECRET_KEY: str = "CHANGE_THIS_TO_A_RANDOM_SECRET_KEY"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
+    TESTING: bool = False
 
     # Database — PostgreSQL default with psycopg 3
     DATABASE_URL: str = "postgresql+psycopg://bhusatya:password@localhost:5432/bhusatya"
@@ -17,8 +18,8 @@ class Settings(BaseSettings):
     LAYOUT_MODEL_PATH: str = "./ml_models/layout_detector.pt"
     LAYOUT_MODEL_CONFIDENCE: float = 0.35
 
-    # ML Model 2 - Table Text Extraction (mock | manual | ocr | paddle_ocr | custom)
-    TABLE_TEXT_PROVIDER: str = "mock"
+    # ML Model 2 - Table Text Extraction (paddle_ocr | manual | custom)
+    TABLE_TEXT_PROVIDER: str = "paddle_ocr"
 
     # File Storage
     STORAGE_DIR: str = "./storage"

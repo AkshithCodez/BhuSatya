@@ -53,7 +53,7 @@ class PaddleOCRTableTextExtractor(TableTextExtractor):
         if ocr is None:
             return TableExtractionResult(
                 extraction_method="paddle_ocr",
-                error="PaddleOCR is not available. Please install paddleocr or use TABLE_TEXT_PROVIDER=mock",
+                error="PaddleOCR is not available. Please install paddleocr or ensure C++ runtimes are installed.",
             )
 
         try:
@@ -65,21 +65,38 @@ class PaddleOCRTableTextExtractor(TableTextExtractor):
             results = list(ocr.predict(img_rgb))
 
             extracted_lines = []
+            rec_confidences = []
+
             if results and results[0] is not None:
                 raw = results[0]
                 if isinstance(raw, dict):
                     texts = raw.get("rec_texts") or []
+                    scores = raw.get("rec_scores") or []
                     extracted_lines = [str(t).strip() for t in texts if str(t).strip()]
+                    rec_confidences = [float(s) for s in scores if s is not None]
                 elif isinstance(raw, list):
                     for item in raw:
                         if item and len(item) > 1 and item[1]:
-                            extracted_lines.append(str(item[1][0]).strip())
+                            line_text = str(item[1][0]).strip()
+                            if line_text:
+                                extracted_lines.append(line_text)
+                                if len(item[1]) > 1 and item[1][1] is not None:
+                                    try:
+                                        rec_confidences.append(float(item[1][1]))
+                                    except (ValueError, TypeError):
+                                        pass
 
             full_text = "\n".join(extracted_lines)
+            mean_conf = (
+                round(sum(rec_confidences) / len(rec_confidences), 4)
+                if rec_confidences
+                else None
+            )
+
             return TableExtractionResult(
                 raw_text=full_text,
                 extraction_method="paddle_ocr",
-                confidence=0.85 if full_text else 0.0,
+                confidence=mean_conf,
             )
 
         except Exception as e:

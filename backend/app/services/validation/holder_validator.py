@@ -15,6 +15,12 @@ class HolderValidator(Validator):
 
         parcel = db.query(Parcel).filter(Parcel.khasra_number == khasra).first()
         if not parcel:
+            results.append(ValidationResultData(
+                rule="HOLDER_MATCH",
+                status="SKIP",
+                message=f"Cannot validate holder — parcel '{khasra}' not found in reference data",
+                uploaded_value=holder,
+            ))
             return results
 
         # Get current right holders
@@ -53,6 +59,13 @@ class HolderValidator(Validator):
                 uploaded_value=holder,
                 evidence=evidence,
                 recommendation="Verify if this is a previous holder or a name variation",
+            ))
+        else:
+            results.append(ValidationResultData(
+                rule="HOLDER_MATCH",
+                status="SKIP",
+                message=f"No right holder reference records found for parcel '{khasra}'",
+                uploaded_value=holder,
             ))
 
         return results

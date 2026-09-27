@@ -9,6 +9,7 @@ from app.models.detection import ExtractedRegion
 from app.models.extraction import TableExtraction, ExtractedField
 from app.schemas.extraction import ExtractedFieldOut, TableExtractionOut, ManualTextInput
 from app.services.table_extraction import create_table_extractor
+from app.services.table_extraction.base import TableExtractionResult
 from app.services.field_parser import parse_fields
 from app.services.audit_service import log_audit_event
 
@@ -29,16 +30,18 @@ def extract_table_text(
     if region.class_name != "table":
         raise HTTPException(status_code=400, detail="Region is not a table")
 
-    extractor = create_table_extractor(settings.TABLE_TEXT_PROVIDER)
-
-    # If manual mode, set the text
-    if manual_input and hasattr(extractor, "set_text"):
-        extractor.set_text(manual_input.text)
-
-    result = extractor.extract(region.crop_path)
+    if manual_input and manual_input.text:
+        result = TableExtractionResult(
+            raw_text=manual_input.text,
+            extraction_method="manual",
+            confidence=None,
+        )
+    else:
+        extractor = create_table_extractor(settings.TABLE_TEXT_PROVIDER)
+        result = extractor.extract(region.crop_path)
 
     if result.error:
-        raise HTTPException(status_code=500, detail=result.error)
+        raise HTTPException(status_code=503, detail=f"Table extraction failed: {result.error}")
 
     extraction = TableExtraction(
         detected_region_id=region_id,
@@ -95,7 +98,11 @@ def parse_document_fields(document_id: int, db: Session = Depends(get_db)):
     all_fields = []
 
     for extraction in extractions:
-        result = parse_fields(extraction.raw_text, extraction.extraction_method)
+        result = parse_fields(
+            extraction.raw_text,
+            extraction.extraction_method,
+            source_confidence=extraction.confidence,
+        )
 
         for parsed in result.fields:
             field = ExtractedField(

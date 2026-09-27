@@ -20,7 +20,7 @@ from typing import Optional
 class TableExtractionResult:
     raw_text: str = ""
     extraction_method: str = "unknown"
-    confidence: float = 0.0
+    confidence: Optional[float] = None
     error: Optional[str] = None
     fields: dict = field(default_factory=dict)
 

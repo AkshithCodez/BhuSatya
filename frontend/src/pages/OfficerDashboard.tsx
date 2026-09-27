@@ -7,6 +7,8 @@ import {
   FileStack,
   Map,
   Upload,
+  AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import Panel from '../components/ui/Panel';
@@ -17,7 +19,6 @@ import SegmentedControl from '../components/ui/SegmentedControl';
 import { StatusBadge } from '../components/ui/Badge';
 import { SearchInput, Select } from '../components/ui/Field';
 import { EmptyRow, TBody, TD, TH, THead, TR, Table } from '../components/ui/Table';
-import { getCases } from '../data/mockCases';
 import { getDashboard } from '../api/client';
 import type { DashboardResponse } from '../types';
 
@@ -28,13 +29,6 @@ const PERIODS: { value: Period; label: string }[] = [
   { value: 'month', label: 'This Month' },
   { value: 'quarter', label: 'This Quarter' },
 ];
-
-/** Reporting figures per period — the single source for cards and chart. */
-const FIGURES: Record<Period, { processed: number; pending: number; verified: number; stages: number[] }> = {
-  week: { processed: 34, pending: 18, verified: 2480, stages: [34, 29, 6, 23] },
-  month: { processed: 142, pending: 18, verified: 2480, stages: [142, 124, 18, 96] },
-  quarter: { processed: 411, pending: 18, verified: 2480, stages: [411, 380, 41, 318] },
-};
 
 const STAGE_LABELS = ['Uploaded', 'Analysed', 'Awaiting review', 'Approved'];
 
@@ -71,57 +65,37 @@ export default function OfficerDashboard() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('All');
   const [dbData, setDbData] = useState<DashboardResponse | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [dbError, setDbError] = useState<string | null>(null);
 
   useEffect(() => {
+    setLoading(true);
+    setDbError(null);
     getDashboard()
-      .then((data) => setDbData(data))
-      .catch((err) => console.log('Dashboard API status:', err));
+      .then((data) => {
+        setDbData(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setDbError(err?.response?.data?.detail || err?.message || 'Database unavailable');
+        setLoading(false);
+      });
   }, []);
 
   const cases = useMemo(() => {
-    const baseCases = getCases();
-    if (dbData && dbData.recent_documents.length > 0) {
-      const dbCases = dbData.recent_documents.map((d) => ({
-        id: `DOC-${d.id}`,
-        docType: 'Scanned Deed',
-        district: 'Bengaluru Urban',
-        taluk: 'Devanahalli',
-        village: d.village || 'Binnamangala',
-        surveyNo: d.khasra_number || '104/A',
-        ownerName: 'Savitha M. Ranganath',
-        extent: '2.14 Acres',
-        uploadedAt: d.created_at ? new Date(d.created_at).toLocaleDateString() : 'Today',
-        updatedAt: 'Just now',
-        status: d.status === 'VERIFIED' ? 'Approved' : d.status === 'UPLOADED' ? 'Pending' : 'Needs Review',
-        risk: (d.risk_level || 'Low') as 'Low' | 'Medium' | 'High',
-        pages: 1,
-        source: 'PostgreSQL DB' as const,
-      }));
-      // Prepend recent DB cases avoiding duplicates
-      const existingIds = new Set(baseCases.map((c) => c.id));
-      const filteredDb = dbCases.filter((c) => !existingIds.has(c.id));
-      return [...filteredDb, ...baseCases];
-    }
-    return baseCases;
+    if (!dbData || !dbData.recent_documents) return [];
+    return dbData.recent_documents.map((d) => ({
+      id: `DOC-${d.id}`,
+      numericId: d.id,
+      docType: d.original_filename,
+      district: '—',
+      village: d.village || '—',
+      surveyNo: d.khasra_number || '—',
+      uploadedAt: d.created_at ? new Date(d.created_at).toLocaleDateString() : '—',
+      status: d.status === 'VERIFIED' ? 'Approved' : d.status === 'UPLOADED' ? 'Pending' : 'Needs Review',
+      risk: (d.risk_level || 'Low') as 'Low' | 'Medium' | 'High',
+    }));
   }, [dbData]);
-
-  const figures = useMemo(() => {
-    const base = FIGURES[period];
-    if (dbData?.stats) {
-      return {
-        processed: base.processed + dbData.stats.processed,
-        pending: base.pending + dbData.stats.needs_review,
-        verified: base.verified + dbData.stats.verified,
-        stages: [
-          base.stages[0] + dbData.stats.total_documents,
-          base.stages[1] + dbData.stats.processed,
-          base.stages[2] + dbData.stats.needs_review,
-          base.stages[3] + dbData.stats.verified,
-        ],
-      };
-    }
-    return base;
-  }, [period, dbData]);
 
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -132,11 +106,23 @@ export default function OfficerDashboard() {
           !q ||
           c.id.toLowerCase().includes(q) ||
           c.docType.toLowerCase().includes(q) ||
-          c.district.toLowerCase().includes(q) ||
+          c.village.toLowerCase().includes(q) ||
           c.surveyNo.toLowerCase().includes(q)
       )
-      .slice(0, 6);
+      .slice(0, 10);
   }, [cases, search, status]);
+
+  const chartData = useMemo(() => {
+    if (!dbData?.stats) {
+      return STAGE_LABELS.map((label) => ({ label, value: 0 }));
+    }
+    return [
+      { label: 'Uploaded', value: dbData.stats.total_documents },
+      { label: 'Analysed', value: dbData.stats.processed },
+      { label: 'Awaiting review', value: dbData.stats.needs_review },
+      { label: 'Approved', value: dbData.stats.verified },
+    ];
+  }, [dbData]);
 
   const resetFilters = () => {
     setPeriod('month');
@@ -159,27 +145,37 @@ export default function OfficerDashboard() {
         }
       />
 
-      {/* Summary */}
+      {dbError && (
+        <div className="mb-5 flex items-center gap-3 rounded-card border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          <AlertTriangle size={18} className="shrink-0 text-amber-400" />
+          <div>
+            <p className="font-medium text-amber-300">PostgreSQL Database Offline</p>
+            <p className="text-xs text-amber-400/80">{dbError} — Live metrics and persistence require PostgreSQL 16 on port 5432.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Summary Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <StatCard
           accent
-          icon={<FileStack size={16} strokeWidth={1.9} />}
+          icon={loading ? <Loader2 size={16} className="animate-spin" /> : <FileStack size={16} strokeWidth={1.9} />}
           label="Processed Records"
-          value={figures.processed.toLocaleString('en-IN')}
+          value={loading ? 'Loading...' : dbData ? dbData.stats.processed.toLocaleString('en-IN') : 'Unavailable'}
           description="Documents digitized and analysed in this period."
           action={{ label: 'View analysis', onClick: () => navigate('/analysis') }}
         />
         <StatCard
-          icon={<ClipboardCheck size={16} strokeWidth={1.9} />}
+          icon={loading ? <Loader2 size={16} className="animate-spin" /> : <ClipboardCheck size={16} strokeWidth={1.9} />}
           label="Pending Verification"
-          value={figures.pending.toLocaleString('en-IN')}
+          value={loading ? 'Loading...' : dbData ? dbData.stats.needs_review.toLocaleString('en-IN') : 'Unavailable'}
           description="Cases awaiting an officer decision."
           action={{ label: 'Open case queue', onClick: () => navigate('/verification') }}
         />
         <StatCard
-          icon={<FileCheck2 size={16} strokeWidth={1.9} />}
+          icon={loading ? <Loader2 size={16} className="animate-spin" /> : <FileCheck2 size={16} strokeWidth={1.9} />}
           label="Verified Land Records"
-          value={figures.verified.toLocaleString('en-IN')}
+          value={loading ? 'Loading...' : dbData ? dbData.stats.verified.toLocaleString('en-IN') : 'Unavailable'}
           description="Records confirmed against the state register."
           action={{ label: 'Browse records', onClick: () => navigate('/land-records') }}
         />
@@ -212,14 +208,25 @@ export default function OfficerDashboard() {
 
         <Panel
           title="Processing Activity"
-          subtitle={`Document stages · ${PERIODS.find((p) => p.value === period)?.label}`}
+          subtitle={dbData ? `Document stages · ${PERIODS.find((p) => p.value === period)?.label}` : 'Database unavailable'}
           className="xl:col-span-5"
         >
-          <BarChart
-            data={STAGE_LABELS.map((label, i) => ({ label, value: figures.stages[i] }))}
-            accentIndex={3}
-            height={176}
-          />
+          {loading ? (
+            <div className="flex h-44 items-center justify-center text-sm text-ink-3">
+              <Loader2 className="animate-spin text-accent mr-2" size={16} /> Loading metrics...
+            </div>
+          ) : dbData ? (
+            <BarChart
+              data={chartData}
+              accentIndex={3}
+              height={176}
+            />
+          ) : (
+            <div className="flex h-44 flex-col items-center justify-center text-center text-sm text-ink-3">
+              <p>Activity chart unavailable</p>
+              <p className="text-xs text-ink-4 mt-1">Connect PostgreSQL to display stage analytics</p>
+            </div>
+          )}
         </Panel>
       </div>
 
@@ -241,32 +248,35 @@ export default function OfficerDashboard() {
               <option value="Pending">Pending</option>
               <option value="Needs Review">Needs Review</option>
               <option value="Approved">Approved</option>
-              <option value="Flagged">Flagged</option>
             </Select>
           </>
         }
       >
         <Table minWidth={900}>
           <THead>
-            <TH>Case</TH>
-            <TH>Document Type</TH>
-            <TH>District</TH>
-            <TH>Survey No.</TH>
-            <TH>Updated</TH>
+            <TH>Document / Case</TH>
+            <TH>File Name</TH>
+            <TH>Village</TH>
+            <TH>Survey / Khasra No.</TH>
+            <TH>Uploaded Date</TH>
             <TH>Status</TH>
             <TH align="right">Action</TH>
           </THead>
           <TBody>
-            {rows.length === 0 ? (
-              <EmptyRow colSpan={7} message="No cases match the current filters." />
+            {loading ? (
+              <EmptyRow colSpan={7} message="Loading documents from database..." />
+            ) : dbError ? (
+              <EmptyRow colSpan={7} message="Cannot load documents: PostgreSQL is unavailable." />
+            ) : rows.length === 0 ? (
+              <EmptyRow colSpan={7} message="No documents found in database. Upload a document to begin." />
             ) : (
               rows.map((c) => (
-                <TR key={c.id} onClick={() => navigate(`/verification/${c.id}`)}>
+                <TR key={c.id} onClick={() => navigate(`/analysis?docId=${c.numericId}`)}>
                   <TD className="tnum text-ink font-medium">{c.id}</TD>
                   <TD>{c.docType}</TD>
-                  <TD>{c.district}</TD>
+                  <TD>{c.village}</TD>
                   <TD className="tnum">{c.surveyNo}</TD>
-                  <TD className="text-ink-3">{c.updatedAt}</TD>
+                  <TD className="text-ink-3">{c.uploadedAt}</TD>
                   <TD>
                     <StatusBadge status={c.status} />
                   </TD>
@@ -276,10 +286,10 @@ export default function OfficerDashboard() {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/verification/${c.id}`);
+                        navigate(`/analysis?docId=${c.numericId}`);
                       }}
                     >
-                      Review
+                      Inspect
                     </Button>
                   </TD>
                 </TR>

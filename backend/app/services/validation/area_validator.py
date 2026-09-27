@@ -101,5 +101,12 @@ class AreaValidator(Validator):
                 uploaded_value=f"{extracted_area} {area_unit}",
                 evidence=evidence,
             ))
+        else:
+            results.append(ValidationResultData(
+                rule="AREA_CONSISTENCY",
+                status="SKIP",
+                message="No area reference records available for this parcel in reference database",
+                uploaded_value=f"{extracted_area} {area_unit}",
+            ))
 
         return results

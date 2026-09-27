@@ -24,12 +24,12 @@ class ValidationResultOut(BaseModel):
 
 class ValidationResponse(BaseModel):
     document_id: int
-    risk_score: float
+    risk_score: Optional[float] = None
     risk_level: str
     results: list[ValidationResultOut]
 
 
 class RiskScore(BaseModel):
-    score: float
-    level: str  # LOW, MODERATE, HIGH, CRITICAL
+    score: Optional[float] = None
+    level: str  # LOW, MODERATE, HIGH, CRITICAL, INSUFFICIENT_DATA
     summary: str

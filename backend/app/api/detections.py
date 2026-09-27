@@ -27,7 +27,7 @@ def get_detector():
                 settings.LAYOUT_MODEL_PATH,
                 settings.LAYOUT_MODEL_CONFIDENCE,
             )
-        elif settings.DEMO_MODE:
+        elif settings.TESTING or os.environ.get("TESTING") == "true":
             _detector = MockLayoutDetector(settings.LAYOUT_MODEL_CONFIDENCE)
         else:
             _detector = None
@@ -42,10 +42,10 @@ def detect_layout(document_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Document not found")
 
     detector = get_detector()
-    if not detector:
+    if not detector or not detector.is_available:
         raise HTTPException(
             status_code=503,
-            detail="Layout detection model is not available. Place layout_detector.pt in backend/ml_models/",
+            detail="Layout detection model is not available. Real weights are required at backend/ml_models/layout_detector.pt",
         )
 
     # Update status

@@ -97,10 +97,16 @@ def test_structured_field_parser():
 
 
 def test_risk_scoring_deterministic():
-    """Verify risk score calculation and levels."""
+    """Verify risk score calculation and truthful INSUFFICIENT_DATA behavior."""
     score, level = calculate_risk_score([])
-    assert score == 0.0
-    assert level == "LOW"
+    assert score is None
+    assert level == "INSUFFICIENT_DATA"
+
+    # Evaluated pass with no penalties
+    res_pass = [ValidationResultData(rule="PARCEL_EXISTS", status="PASS", message="Exists")]
+    score_pass, level_pass = calculate_risk_score(res_pass)
+    assert score_pass == 0.0
+    assert level_pass == "LOW"
 
     # Single critical fail = 25 penalty
     res_critical = [
@@ -128,17 +134,24 @@ def test_risk_scoring_deterministic():
 
 
 def test_database_connection_and_session():
-    """Verify database session handling and transaction rollback."""
-    from app.db.database import SessionLocal, check_db_health
+    """Verify database session handling and transaction rollback on isolated engine."""
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    from app.db.database import Base
     from app.models.user import User
 
-    assert check_db_health() is True
-
-    db = SessionLocal()
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(bind=engine)
+    Session = sessionmaker(bind=engine)
+    db = Session()
     try:
+        user = User(email="test@domain.com", full_name="Test User", hashed_password="pw", role="TEST")
+        db.add(user)
+        db.commit()
+
         # Verify query execution
         count = db.query(User).count()
-        assert count >= 1
+        assert count == 1
 
         # Test rollback behavior
         temp_user = User(email="temp_test@domain.com", full_name="Temp", hashed_password="pw", role="TEST")
@@ -147,6 +160,7 @@ def test_database_connection_and_session():
         assert db.query(User).filter(User.email == "temp_test@domain.com").first() is None
     finally:
         db.close()
+        engine.dispose()
 
 
 def test_crop_generation_and_clamping(tmp_path):

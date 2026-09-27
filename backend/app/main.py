@@ -15,8 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
-from app.db.database import Base, engine, SessionLocal
-from app.db.seed import seed_database
+from app.db.database import Base, engine
 
 # Import all models so Base.metadata.create_all finds them
 import app.models  # noqa: F401
@@ -38,29 +37,33 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifecycle — create tables and seed data on startup."""
+    """Application lifecycle — initialize directories and verify tables without silent fallbacks."""
     # Create directories
     for dir_path in [settings.STORAGE_DIR, settings.UPLOAD_DIR, settings.DOCUMENT_PAGES_DIR, settings.DETECTED_REGIONS_DIR]:
         os.makedirs(dir_path, exist_ok=True)
 
-    # Create tables
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables verified.")
+    # Check real database connectivity
+    from app.db.database import get_db_status
+    db_status = get_db_status()
+    if db_status["status"] == "ok":
+        try:
+            Base.metadata.create_all(bind=engine)
+            logger.info("PostgreSQL database tables verified.")
+        except Exception as e:
+            logger.error(f"Failed to initialize database tables: {e}")
+    else:
+        logger.warning(
+            f"Database unavailable on startup ({db_status['engine']}): {db_status.get('reason')}. "
+            "PostgreSQL 16 is required. Database endpoints will return HTTP 503."
+        )
 
-    # Seed demo data
-    db = SessionLocal()
-    try:
-        seed_database(db)
-    finally:
-        db.close()
-
-    # Model status
+    # Layout model status
     if settings.model_available:
         logger.info(f"Layout model available at {settings.LAYOUT_MODEL_PATH}")
     else:
         logger.warning(
             f"Layout model NOT found at {settings.LAYOUT_MODEL_PATH}. "
-            f"{'Using mock detections (DEMO_MODE).' if settings.DEMO_MODE else 'Detection endpoints will return errors.'}"
+            "Detection endpoints will report unavailable (HTTP 503)."
         )
 
     logger.info(f"Table text provider: {settings.TABLE_TEXT_PROVIDER}")
@@ -106,16 +109,52 @@ app.include_router(dashboard_router)
 @app.get("/health")
 @app.get("/api/health")
 def health_check():
-    """API health check reporting backend, database, and layout model status."""
-    from app.db.database import check_db_health
-    db_healthy = check_db_health()
-    return {
-        "status": "healthy" if db_healthy else "degraded",
-        "backend": "ok",
-        "database": "ok" if db_healthy else "unavailable",
-        "layout_model": "available" if settings.model_available else "unavailable",
-        "app": settings.APP_NAME,
-        "model_path": settings.LAYOUT_MODEL_PATH,
-        "demo_mode": settings.DEMO_MODE,
-        "table_text_provider": settings.TABLE_TEXT_PROVIDER,
+    """Truthful health check reflecting actual runtime dependencies without simulation."""
+    from app.db.database import get_db_status
+    db_status = get_db_status()
+
+    # Check PaddleOCR availability
+    paddle_available = False
+    if settings.TABLE_TEXT_PROVIDER in ("paddle_ocr", "paddleocr"):
+        try:
+            import paddleocr  # noqa: F401
+            paddle_available = True
+        except ImportError:
+            paddle_available = False
+    elif settings.TABLE_TEXT_PROVIDER == "manual":
+        paddle_available = True
+
+    overall_healthy = (
+        db_status["status"] == "ok"
+        and settings.model_available
+        and (paddle_available or settings.TABLE_TEXT_PROVIDER == "manual")
+    )
+
+    response = {
+        "status": "healthy" if overall_healthy else "degraded",
+        "backend": {
+            "status": "ok",
+        },
+        "database": {
+            "status": db_status["status"],
+            "engine": db_status["engine"],
+        },
+        "layout_model": {
+            "status": "available" if settings.model_available else "unavailable",
+            "model": "layout_detector.pt",
+            "provider": "ultralytics",
+        },
+        "table_text_provider": {
+            "status": "available" if paddle_available else "unavailable",
+            "provider": settings.TABLE_TEXT_PROVIDER,
+        },
     }
+
+    if db_status["status"] != "ok":
+        response["database"]["reason"] = db_status.get("reason", "Connection failed")
+    if not settings.model_available:
+        response["layout_model"]["reason"] = f"Weights not found at {settings.LAYOUT_MODEL_PATH}"
+    if not paddle_available and settings.TABLE_TEXT_PROVIDER in ("paddle_ocr", "paddleocr"):
+        response["table_text_provider"]["reason"] = "paddleocr package not installed in environment"
+
+    return response

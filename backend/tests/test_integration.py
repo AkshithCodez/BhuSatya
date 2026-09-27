@@ -32,12 +32,15 @@ def create_dummy_document_image():
 
 
 def test_health_check(client):
-    """Verify health endpoint returns healthy and demo_mode."""
+    """Verify health endpoint returns structured and truthful status."""
     resp = client.get("/api/health")
     assert resp.status_code == 200
     data = resp.json()
-    assert data["status"] == "healthy"
-    assert data["app"] == "BhuSatya"
+    assert "backend" in data
+    assert data["backend"]["status"] == "ok"
+    assert "database" in data
+    assert "layout_model" in data
+    assert "table_text_provider" in data
 
 
 def test_auth_login(client):
@@ -97,7 +100,11 @@ def test_full_digitization_and_verification_flow(client, auth_headers):
 
     # Extract table if regions exist
     if table_regions:
-        ext_resp = client.post(f"/api/regions/{table_regions[0]['id']}/extract", headers=auth_headers)
+        ext_resp = client.post(
+            f"/api/regions/{table_regions[0]['id']}/extract",
+            json={"text": "Khasra No: 145/2\nArea: 3.82 Acre"},
+            headers=auth_headers,
+        )
         assert ext_resp.status_code == 200
 
     # 4. Parse Structured Fields
