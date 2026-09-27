@@ -30,7 +30,9 @@ class PaddleOCRTableTextExtractor(TableTextExtractor):
                 os.environ["GLOG_minloglevel"] = "3"
                 os.environ["PPOCR_SHOW_LOG"] = "0"
 
-                from paddleocr import PaddleOCR
+                import importlib
+                paddleocr_mod = importlib.import_module("paddleocr")
+                PaddleOCR = getattr(paddleocr_mod, "PaddleOCR")
                 self._ocr = PaddleOCR(
                     device="cpu",
                     lang="en",

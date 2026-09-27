@@ -137,7 +137,7 @@ export default function OfficerDashboard() {
         subtitle="Summary of land-record digitization and verification activity."
         actions={
           <>
-            <SegmentedControl options={PERIODS} value={period} onChange={setPeriod} />
+            <SegmentedControl<Period> options={PERIODS} value={period} onChange={(val) => setPeriod(val)} />
             <Button variant="ghost" size="sm" onClick={resetFilters}>
               Reset Filters
             </Button>

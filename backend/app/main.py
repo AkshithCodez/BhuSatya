@@ -116,11 +116,8 @@ def health_check():
     # Check PaddleOCR availability
     paddle_available = False
     if settings.TABLE_TEXT_PROVIDER in ("paddle_ocr", "paddleocr"):
-        try:
-            import paddleocr  # noqa: F401
-            paddle_available = True
-        except ImportError:
-            paddle_available = False
+        import importlib.util
+        paddle_available = importlib.util.find_spec("paddleocr") is not None
     elif settings.TABLE_TEXT_PROVIDER == "manual":
         paddle_available = True
 
