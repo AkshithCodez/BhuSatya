@@ -5,8 +5,11 @@ import type {
   AuditEvent, ReviewQueueItem, ParcelOut, TimelineEvent, GraphNode, GraphEdge,
   VerifiedRecordResponse,
 } from '../types';
+const RAW_API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+export const API_BASE_URL = RAW_API_BASE.replace(/\/+$/, '');
+export const API_URL = API_BASE_URL ? `${API_BASE_URL}/api` : '/api';
 
-const api = axios.create({ baseURL: '/api' });
+const api = axios.create({ baseURL: API_URL });
 
 // Inject auth token
 api.interceptors.request.use((config) => {
@@ -110,8 +113,8 @@ export const getAuditEvents = (docId?: number) =>
 
 // Helper: page image URL
 export const getPageImageUrl = (docId: number, page: number) =>
-  `/api/documents/${docId}/page/${page}/image`;
+  `${API_URL}/documents/${docId}/page/${page}/image`;
 export const getRegionImageUrl = (regionId: number) =>
-  `/api/regions/${regionId}/image`;
+  `${API_URL}/regions/${regionId}/image`;
 
 import type { Detection } from '../types';

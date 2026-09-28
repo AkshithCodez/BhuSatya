@@ -49,10 +49,6 @@ async def lifespan(app: FastAPI):
         try:
             Base.metadata.create_all(bind=engine)
             logger.info("PostgreSQL database tables verified.")
-            from app.db.database import SessionLocal
-            from app.db.seed import seed_database
-            with SessionLocal() as db_session:
-                seed_database(db_session)
         except Exception as e:
             logger.error(f"Failed to initialize database tables: {e}")
     else:
@@ -98,7 +94,7 @@ app = FastAPI(
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL, "http://localhost:5173", "http://localhost:3000"],
+    allow_origins=settings.allowed_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

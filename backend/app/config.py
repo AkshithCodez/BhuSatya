@@ -32,20 +32,58 @@ class Settings(BaseSettings):
     # ML Model 3 - Table Text Extraction (paddle_ocr | manual | custom)
     TABLE_TEXT_PROVIDER: str = "paddle_ocr"
 
-    # File Storage
-    STORAGE_DIR: str = "./storage"
-    UPLOAD_DIR: str = "./uploads"
-    DOCUMENT_PAGES_DIR: str = "./document_pages"
-    DETECTED_REGIONS_DIR: str = "./detected_regions"
+    # Persistent Storage Root (Mount Railway Volume to /data, local default is .)
+    STORAGE_ROOT: str = "."
 
     # CORS
     FRONTEND_URL: str = "http://localhost:5173"
+    FRONTEND_ORIGIN: str = ""
+    CORS_ORIGINS: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    @property
+    def normalized_database_url(self) -> str:
+        url = self.DATABASE_URL
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+psycopg://", 1)
+        elif url.startswith("postgresql://") and not url.startswith("postgresql+"):
+            url = url.replace("postgresql://", "postgresql+psycopg://", 1)
+        return url
+
+    @property
+    def STORAGE_DIR(self) -> str:
+        return str(Path(self.STORAGE_ROOT) / "storage")
+
+    @property
+    def UPLOAD_DIR(self) -> str:
+        return str(Path(self.STORAGE_ROOT) / "uploads")
+
+    @property
+    def DOCUMENT_PAGES_DIR(self) -> str:
+        return str(Path(self.STORAGE_ROOT) / "document_pages")
+
+    @property
+    def DETECTED_REGIONS_DIR(self) -> str:
+        return str(Path(self.STORAGE_ROOT) / "detected_regions")
+
+    @property
+    def allowed_cors_origins(self) -> list[str]:
+        origins = {"http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000"}
+        if self.FRONTEND_URL:
+            origins.add(self.FRONTEND_URL.rstrip("/"))
+        if self.FRONTEND_ORIGIN:
+            origins.add(self.FRONTEND_ORIGIN.rstrip("/"))
+        if self.CORS_ORIGINS:
+            for o in self.CORS_ORIGINS.split(","):
+                o_clean = o.strip().rstrip("/")
+                if o_clean:
+                    origins.add(o_clean)
+        return list(origins)
 
     @property
     def land_layout_available(self) -> bool:

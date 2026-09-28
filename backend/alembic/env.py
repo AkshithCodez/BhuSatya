@@ -20,7 +20,7 @@ config = context.config
 
 # Set sqlalchemy.url from settings if not explicitly passed
 if not config.get_main_option("sqlalchemy.url"):
-    config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+    config.set_main_option("sqlalchemy.url", settings.normalized_database_url)
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:

@@ -17,6 +17,12 @@ logger = logging.getLogger(__name__)
 
 def build_engine(url: str):
     """Build SQLAlchemy engine strictly based on configured DATABASE_URL."""
+    # Normalize postgresql:// or postgres:// to postgresql+psycopg:// for psycopg 3
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+psycopg://", 1)
+    elif url.startswith("postgresql://") and not url.startswith("postgresql+"):
+        url = url.replace("postgresql://", "postgresql+psycopg://", 1)
+
     if url.startswith("sqlite"):
         # SQLite is allowed ONLY if explicitly configured (e.g. during isolated unit tests)
         return create_engine(
@@ -31,13 +37,13 @@ def build_engine(url: str):
             pool_size=10,
             max_overflow=20,
             pool_pre_ping=True,
-            connect_args={"connect_timeout": 3},
+            connect_args={"connect_timeout": 5},
             echo=False,
         )
 
 
-# Initialize engine with the configured DATABASE_URL
-engine = build_engine(settings.DATABASE_URL)
+# Initialize engine with the normalized DATABASE_URL
+engine = build_engine(settings.normalized_database_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

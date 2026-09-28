@@ -42,8 +42,10 @@ def get_current_user(
             jwt_token = authorization.strip()
 
     if not jwt_token:
-        # Fallback to seeded officer (id=1) for test compatibility
-        return db.query(User).filter(User.id == 1).first()
+        # Fallback to seeded officer (id=1) only when isolated unit testing is explicitly enabled
+        if settings.TESTING:
+            return db.query(User).filter(User.id == 1).first()
+        return None
 
     try:
         payload = jwt.decode(jwt_token, settings.SECRET_KEY, algorithms=["HS256"])

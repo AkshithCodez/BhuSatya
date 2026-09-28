@@ -11,8 +11,8 @@ class TableExtraction(Base):
     detected_region_id = Column(Integer, ForeignKey("detected_regions.id"), nullable=True)
     region_id = Column(Integer, nullable=True)  # Backwards compatibility alias
     document_id = Column(Integer, ForeignKey("documents.id"), nullable=False)
-    provider = Column(String, default="mock")  # mock, manual, ocr, paddle_ocr, custom
-    extraction_method = Column(String, nullable=False, default="mock")
+    provider = Column(String, default="paddle_ocr")  # paddle_ocr, manual, ocr, custom
+    extraction_method = Column(String, nullable=False, default="paddle_ocr")
     raw_text = Column(Text)
     structured_raw_output = Column(Text)  # JSON representation of extracted rows/cols
     confidence = Column(Float, default=0.0)

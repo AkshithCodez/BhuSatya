@@ -23,8 +23,10 @@ backend/document_pages/*
 backend/detected_regions/*
 !backend/detected_regions/.gitkeep
 
-# ML model weights (too large for git)
+# ML model weights (whitelist trained BhuSatya YOLO checkpoints ~6MB each for Railway build)
 backend/ml_models/*.pt
+!backend/ml_models/land_layout_detector.pt
+!backend/ml_models/table_signature_stamp_detector.pt
 
 # Node modules
 frontend/node_modules/
