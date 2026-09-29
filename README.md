@@ -177,9 +177,7 @@ BhuSatya/
 │   │   └── main.tsx                  # React entry point
 │   ├── vercel.json                   # Vercel SPA routing rewrite rules
 │   └── package.json                  # Frontend dependencies and build scripts
-│
-├── DEPLOYMENT.md                     # Comprehensive cloud deployment instructions
-└── README.md                         # Project documentation
+└── README.md                         # Complete project documentation & setup guide
 ```
 
 ---
@@ -338,25 +336,33 @@ python -m pytest tests/ -v
 
 ---
 
-## Production Deployment Overview
+## Production Cloud Deployment (Vercel & Railway)
 
 BhuSatya is architected for zero-downtime, scalable cloud deployment:
 
-- **Frontend on Vercel:**
-  - Build command: `npm run build`
-  - Output directory: `dist`
-  - Framework: `Vite`
-  - Environment variable: `VITE_API_BASE_URL=https://<your-backend-domain>`
-  - SPA routing: Handled via `frontend/vercel.json`.
+### 1. Railway Backend & Database
+1. **Provision PostgreSQL**: In [Railway](https://railway.app), create a new project and add a **PostgreSQL 16** service.
+2. **Deploy Backend**: Click **New Service** → **GitHub Repo**, select repository root directory `backend`. Railway will build automatically using `backend/Dockerfile`.
+3. **Mount Persistent Volume**: In the backend service settings, add a Persistent Volume mounted at `/data` (5–10 GB) to persist uploaded deeds, rendered pages, and crops.
+4. **Environment Variables**:
+   - `DATABASE_URL`: `${{Postgres.DATABASE_URL}}` *(Auto-references provisioned Railway DB)*
+   - `STORAGE_ROOT`: `/data`
+   - `TABLE_TEXT_PROVIDER`: `paddle_ocr`
+   - `LAND_LAYOUT_MODEL_PATH`: `./ml_models/land_layout_detector.pt`
+   - `DOCUMENT_ELEMENT_MODEL_PATH`: `./ml_models/table_signature_stamp_detector.pt`
+   - `SECRET_KEY`: *(Generate secure 64-char hex key)*
+   - `FRONTEND_URL` / `FRONTEND_ORIGIN`: `https://<your-vercel-domain>.vercel.app`
+   - `DEMO_MODE`: `false`
+   - `TESTING`: `false`
+5. **Startup**: The container runs `python -m alembic upgrade head` to apply all migrations automatically before starting Uvicorn with a single worker.
 
-- **Backend on Railway:**
-  - Container build via `backend/Dockerfile` (`python:3.11-slim`).
-  - Persistent Volume mounted at `/data` (`STORAGE_ROOT=/data`).
-  - Attached PostgreSQL 16 database (`DATABASE_URL=${{Postgres.DATABASE_URL}}`).
-  - Startup executes `alembic upgrade head` before spawning the single Uvicorn worker.
-  - CORS managed dynamically via `FRONTEND_ORIGIN`.
-
-*For detailed cloud deployment steps, consult [`DEPLOYMENT.md`](DEPLOYMENT.md).*
+### 2. Vercel Frontend SPA
+1. In [Vercel](https://vercel.com), click **Add New Project** → Import the BhuSatya repository.
+2. Set Root Directory to `frontend`.
+3. Framework Preset: `Vite`. Build Command: `npm run build`, Output Directory: `dist`.
+4. Set Environment Variable:
+   - `VITE_API_BASE_URL`: `https://<your-railway-service>.up.railway.app` *(without trailing slash)*
+5. The included `frontend/vercel.json` ensures that all client-side routes (e.g., `/verification/49`, `/audit-trail`) support direct browser refresh.
 
 ---
 
